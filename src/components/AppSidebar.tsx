@@ -132,7 +132,10 @@ export function AppSidebar() {
               <SidebarMenu>
                 <SidebarLink
                   {...organizationLink}
-                  isActive={pathname === organizationLink.href}
+                  isActive={
+                    pathname === organizationLink.href ||
+                    pathname.startsWith(`${organizationLink.href}/`)
+                  }
                   onNavigate={onNavigate}
                 />
               </SidebarMenu>
