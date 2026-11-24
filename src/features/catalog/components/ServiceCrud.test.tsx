@@ -40,7 +40,6 @@ const sampleCategories: CategoryDto[] = [
         id: SVC_ID,
         category_id: CAT_ID,
         name: "Classic haircut",
-        description: "Includes wash",
         duration_minutes: 45,
         price_minor_units: 2500,
         currency_code: "USD",
@@ -78,10 +77,6 @@ describe("Service CRUD in CatalogWorkspace", () => {
     expect(actions.createServiceAction).not.toHaveBeenCalled();
 
     await user.type(screen.getByLabelText("Service name"), "Beard trim");
-    await user.type(
-      screen.getByLabelText("Description (optional)"),
-      "Clean line-up",
-    );
     const priceInput = screen.getByLabelText("Price");
     await user.clear(priceInput);
     await user.type(priceInput, "15.50");
@@ -91,7 +86,6 @@ describe("Service CRUD in CatalogWorkspace", () => {
       expect(actions.createServiceAction).toHaveBeenCalledWith({
         category_id: CAT_ID,
         name: "Beard trim",
-        description: "Clean line-up",
         duration_minutes: 30,
         price_minor_units: 1550,
         currency_code: "USD",

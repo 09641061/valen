@@ -6,17 +6,17 @@ test.describe("dashboard navigation", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 960 });
-    await page.goto("/agenda", { waitUntil: "networkidle" });
+    await page.goto("/calendar", { waitUntil: "networkidle" });
 
     await expect(
       page.getByRole("navigation", { name: "Main navigation" }),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Agenda" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Calendar" })).toHaveAttribute(
       "aria-current",
       "page",
     );
     await expect(
-      page.getByRole("heading", { level: 1, name: "Agenda" }),
+      page.getByRole("heading", { level: 1, name: "Calendar" }),
     ).toBeVisible();
 
     await page.getByRole("link", { name: "Customers" }).click();
@@ -31,7 +31,7 @@ test.describe("dashboard navigation", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 844 });
-    await page.goto("/agenda", { waitUntil: "networkidle" });
+    await page.goto("/calendar", { waitUntil: "networkidle" });
 
     const openButton = page.getByRole("button", { name: "Open navigation" });
     await openButton.click();
@@ -46,7 +46,7 @@ test.describe("dashboard navigation", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 960 });
-    await page.goto("/agenda", { waitUntil: "networkidle" });
+    await page.goto("/calendar", { waitUntil: "networkidle" });
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

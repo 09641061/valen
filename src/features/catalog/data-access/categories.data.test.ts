@@ -34,7 +34,6 @@ const sampleService = {
   id: SVC_ID,
   category_id: CAT_ID,
   name: "Classic haircut",
-  description: "Includes wash",
   duration_minutes: 30,
   price_minor_units: 2000,
   currency_code: "USD",
@@ -181,7 +180,7 @@ describe("catalog categories data-access", () => {
               detail: `Failure ${status}`,
               errors:
                 status === 422
-                  ? { name: ["Already exists"], description: "Too long" }
+                  ? { name: ["Already exists"], currency_code: "Invalid" }
                   : undefined,
             },
             {
@@ -199,7 +198,7 @@ describe("catalog categories data-access", () => {
         message: `Failure ${status}`,
         fieldErrors:
           status === 422
-            ? { name: ["Already exists"], description: ["Too long"] }
+            ? { name: ["Already exists"], currency_code: ["Invalid"] }
             : undefined,
       });
     },

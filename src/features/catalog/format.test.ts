@@ -18,7 +18,6 @@ function makeService(
     id,
     category_id: categoryId,
     name: `Service ${id}`,
-    description: "",
     duration_minutes: 30,
     price_minor_units: 1500,
     currency_code: "USD",

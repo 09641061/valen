@@ -19,7 +19,6 @@ const validServiceDto = {
   id: SVC_ID,
   category_id: CAT_ID,
   name: "Classic haircut",
-  description: "Includes wash and blow-dry.",
   duration_minutes: 45,
   price_minor_units: 2500,
   currency_code: "USD",
@@ -32,7 +31,6 @@ const validServiceDto = {
 const validCreateService = {
   category_id: CAT_ID,
   name: "Haircut",
-  description: "",
   duration_minutes: 30,
   price_minor_units: 1000,
   currency_code: "USD",
@@ -100,7 +98,6 @@ describe("catalog service schemas", () => {
       CreateServiceSchema.safeParse({
         ...validCreateService,
         name: "S".repeat(120),
-        description: "D".repeat(2000),
         duration_minutes: 1440,
         price_minor_units: 999_999,
         currency_code: "COP",
@@ -112,7 +109,6 @@ describe("catalog service schemas", () => {
   it.each([
     { name: "   " },
     { name: "a".repeat(121) },
-    { description: "d".repeat(2001) },
     { duration_minutes: 0 },
     { duration_minutes: -10 },
     { duration_minutes: 1441 },
@@ -148,7 +144,6 @@ describe("catalog service schemas", () => {
         id: SVC_ID,
         version: 2,
         name: "Premium haircut",
-        description: "With beard trim",
         duration_minutes: 60,
         price_minor_units: 3500,
         currency_code: "EUR",
@@ -161,7 +156,6 @@ describe("catalog service schemas", () => {
         id: "invalid",
         version: 2,
         name: "Premium haircut",
-        description: "",
         duration_minutes: 60,
         price_minor_units: 3500,
         currency_code: "EUR",

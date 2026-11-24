@@ -35,7 +35,6 @@ function getInitialServiceForm(service?: ServiceDto | null) {
   if (!service) {
     return {
       name: "",
-      description: "",
       duration: "30",
       price: "0.00",
       currencyCode: "USD",
@@ -43,7 +42,6 @@ function getInitialServiceForm(service?: ServiceDto | null) {
   }
   return {
     name: service.name,
-    description: service.description,
     duration: String(service.duration_minutes),
     price: formatMinorUnitsToInput(service.price_minor_units),
     currencyCode: service.currency_code,
@@ -61,7 +59,6 @@ export function ServiceDialog({
   const isEditing = Boolean(service);
   const initial = getInitialServiceForm(service);
   const [name, setName] = useState(initial.name);
-  const [description, setDescription] = useState(initial.description);
   const [duration, setDuration] = useState(initial.duration);
   const [price, setPrice] = useState(initial.price);
   const [currencyCode, setCurrencyCode] = useState(initial.currencyCode);
@@ -87,7 +84,6 @@ export function ServiceDialog({
     const candidate = {
       category_id: service?.category_id ?? categoryId,
       name,
-      description,
       duration_minutes: Number.isNaN(parsedDuration) ? -1 : parsedDuration,
       price_minor_units: minorUnits,
       currency_code: currencyCode,
@@ -105,7 +101,6 @@ export function ServiceDialog({
             id: service.id,
             version: service.version,
             name: parsed.data.name,
-            description: parsed.data.description,
             duration_minutes: parsed.data.duration_minutes,
             price_minor_units: parsed.data.price_minor_units,
             currency_code: parsed.data.currency_code,
@@ -145,14 +140,12 @@ export function ServiceDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <ServiceFormFields
             name={name}
-            description={description}
             duration={duration}
             price={price}
             currencyCode={currencyCode}
             isPending={isPending}
             fieldErrors={fieldErrors}
             onNameChange={setName}
-            onDescriptionChange={setDescription}
             onDurationChange={setDuration}
             onPriceChange={setPrice}
             onCurrencyChange={setCurrencyCode}

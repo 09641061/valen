@@ -158,4 +158,17 @@ describe("architecture boundaries", () => {
     const checkedFiles = nonTestSrcFiles.filter((f) => !f.startsWith(uiDir));
     expect(findDuplicateBlocks(checkedFiles, ROOT_DIR)).toEqual([]);
   });
+
+  it("forbids inline <svg> elements outside src/components/ui/ and src/components/icons/", () => {
+    const uiDir = path.join(SRC_DIR, "components", "ui") + path.sep;
+    const iconsDir = path.join(SRC_DIR, "components", "icons") + path.sep;
+    const violations = nonTestSrcFiles
+      .filter(
+        (f) =>
+          f.endsWith(".tsx") && !f.startsWith(uiDir) && !f.startsWith(iconsDir),
+      )
+      .filter((f) => /<svg[\s>]/i.test(fs.readFileSync(f, "utf8")))
+      .map((f) => path.relative(ROOT_DIR, f));
+    expect(violations).toEqual([]);
+  });
 });

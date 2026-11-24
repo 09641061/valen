@@ -74,9 +74,6 @@ test.describe("catalog management against live Cynthia backend", () => {
       page.getByRole("dialog", { name: "New service" }),
     ).toBeVisible();
     await page.getByLabel("Service name").fill(serviceName);
-    await page
-      .getByLabel("Description (optional)")
-      .fill("E2E test description");
     await page.getByLabel("Duration (min)").fill("45");
     await page.getByLabel("Price").fill("29.50");
     await page.getByRole("button", { name: "Create service" }).click();

@@ -9,20 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
 const CURRENCY_OPTIONS = ["COP", "USD", "EUR", "MXN"] as const;
 
 interface ServiceFormFieldsProps {
   name: string;
-  description: string;
   duration: string;
   price: string;
   currencyCode: string;
   isPending: boolean;
   fieldErrors: Record<string, string>;
   onNameChange: (value: string) => void;
-  onDescriptionChange: (value: string) => void;
   onDurationChange: (value: string) => void;
   onPriceChange: (value: string) => void;
   onCurrencyChange: (value: string) => void;
@@ -30,14 +27,12 @@ interface ServiceFormFieldsProps {
 
 export function ServiceFormFields({
   name,
-  description,
   duration,
   price,
   currencyCode,
   isPending,
   fieldErrors,
   onNameChange,
-  onDescriptionChange,
   onDurationChange,
   onPriceChange,
   onCurrencyChange,
@@ -60,26 +55,6 @@ export function ServiceFormFields({
         {fieldErrors.name ? (
           <p role="alert" className="text-sm text-destructive">
             {fieldErrors.name}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="service-description">Description (optional)</Label>
-        <Textarea
-          id="service-description"
-          name="description"
-          value={description}
-          onChange={(event) => onDescriptionChange(event.target.value)}
-          placeholder="Describe what this service includes..."
-          rows={3}
-          maxLength={2000}
-          disabled={isPending}
-          aria-invalid={Boolean(fieldErrors.description)}
-        />
-        {fieldErrors.description ? (
-          <p role="alert" className="text-sm text-destructive">
-            {fieldErrors.description}
           </p>
         ) : null}
       </div>

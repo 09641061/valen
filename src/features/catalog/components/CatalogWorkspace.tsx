@@ -69,8 +69,7 @@ export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
         }
         const matchingServices = category.services.filter(
           (service) =>
-            service.name.toLowerCase().includes(normalizedQuery) ||
-            service.description.toLowerCase().includes(normalizedQuery),
+            service.name.toLowerCase().includes(normalizedQuery),
         );
         return matchingServices.length > 0
           ? { ...category, services: matchingServices }

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { KoduHeadIcon } from "@/components/ui/icons/kodu-head-icon";
 import {
   Building2,
   CalendarDays,
@@ -35,7 +35,7 @@ type NavigationLink = {
 
 const primaryLinks: NavigationLink[] = [
   { href: "/conversations", label: "Conversations", icon: MessageCircle },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/customers", label: "Customers", icon: UsersRound },
   { href: "/catalog", label: "Catalog", icon: Tags },
 ];
@@ -84,14 +84,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-sidebar-border">
       <SidebarHeader className="flex-row items-center gap-2 px-3.5 pb-5 pt-5">
-        <Image
-          src="/kodu-head.svg"
-          alt=""
-          width={30}
-          height={30}
-          priority
-          className="size-[30px] shrink-0 group-data-[collapsible=icon]:hidden"
-        />
+        <KoduHeadIcon className="size-[30px] group-data-[collapsible=icon]:hidden" />
         <span className="truncate text-[18px] font-semibold tracking-[-0.04em] text-foreground group-data-[collapsible=icon]:sr-only">
           takodu
         </span>

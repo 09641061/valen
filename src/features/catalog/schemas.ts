@@ -6,11 +6,6 @@ const trimmedNameSchema = z
   .min(1, "Name is required")
   .max(120, "Maximum 120 characters");
 
-const serviceDescriptionSchema = z
-  .string()
-  .trim()
-  .max(2000, "Maximum 2000 characters");
-
 const durationMinutesSchema = z
   .number()
   .int("Duration must be an integer")
@@ -32,7 +27,6 @@ export const ServiceSchema = z.object({
   id: z.string().uuid(),
   category_id: z.string().uuid(),
   name: trimmedNameSchema,
-  description: z.string().max(2000),
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
   currency_code: z.string().regex(/^[A-Z]{3}$/),
@@ -78,7 +72,6 @@ export const MoveCategorySchema = z.object({
 export const CreateServiceSchema = z.object({
   category_id: z.string().uuid(),
   name: trimmedNameSchema,
-  description: serviceDescriptionSchema,
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
   currency_code: currencyCodeSchema,
@@ -89,7 +82,6 @@ export const UpdateServiceSchema = z.object({
   id: z.string().uuid(),
   version: z.number().int().min(1),
   name: trimmedNameSchema,
-  description: serviceDescriptionSchema,
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
   currency_code: currencyCodeSchema,

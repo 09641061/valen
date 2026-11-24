@@ -32,7 +32,6 @@ const sampleService = {
   id: SVC_ID,
   category_id: CAT_ID,
   name: "Classic haircut",
-  description: "Includes wash",
   duration_minutes: 30,
   price_minor_units: 2000,
   currency_code: "USD",
@@ -70,7 +69,6 @@ describe("catalog services data-access", () => {
     const created = await insertService({
       category_id: CAT_ID,
       name: "Classic haircut",
-      description: "Includes wash",
       duration_minutes: 30,
       price_minor_units: 2000,
       currency_code: "USD",
@@ -79,7 +77,6 @@ describe("catalog services data-access", () => {
 
     expect(body).toEqual({
       name: "Classic haircut",
-      description: "Includes wash",
       duration_minutes: 30,
       price_minor_units: 2000,
       currency_code: "USD",
@@ -101,7 +98,6 @@ describe("catalog services data-access", () => {
       id: SVC_ID,
       version: 2,
       name: "Updated haircut",
-      description: "",
       duration_minutes: 45,
       price_minor_units: 2500,
       currency_code: "USD",

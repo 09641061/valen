@@ -81,11 +81,6 @@ export function ServiceRow({
           <p className="truncate text-sm font-medium text-foreground">
             {service.name}
           </p>
-          {service.description ? (
-            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-              {service.description}
-            </p>
-          ) : null}
         </div>
       </div>
 

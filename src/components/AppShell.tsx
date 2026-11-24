@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import type { ReactNode } from "react";
+import { KoduHeadIcon } from "@/components/ui/icons/kodu-head-icon";
 import {
   SidebarInset,
   SidebarProvider,
@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             title="Open navigation"
             className="size-11 text-muted-foreground"
           />
-          <Image src="/kodu-head.svg" alt="" width={24} height={24} />
+          <KoduHeadIcon className="size-6" />
           <span className="text-base font-semibold tracking-[-0.03em] text-foreground">
             takodu
           </span>

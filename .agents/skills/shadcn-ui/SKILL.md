@@ -13,7 +13,7 @@ Use this skill together with the Next.js feature-based skill before designing, i
 - When a needed component is missing, inspect its current official documentation and add it with the shadcn CLI (`bunx shadcn@latest docs <component>` and `bunx shadcn@latest add <component>`). Do not hand-roll a replacement for a shadcn primitive.
 - Compose shadcn primitives into domain-specific components under `src/features/<feature>/components/`. Keep domain behavior out of `src/components/ui/`.
 - Customize design tokens and component variants to match the approved product reference; mandatory shadcn use does not authorize changing the reference’s layout, labels, color roles, or interaction flow.
-- Use the project's configured shadcn base and icon library consistently. Use semantic elements, labelled controls, visible focus, and shadcn’s keyboard/focus behavior.
+- Use the project's configured shadcn base and icon library consistently. Extract any custom inline `<svg>` into reusable TSX components under `src/components/icons/` instead of duplicating inline SVGs. Use semantic elements, labelled controls, visible focus, and shadcn's keyboard/focus behavior.
 - Keep interactive UI in small Client Components. Keep routes and data loading on the server where possible.
 - Follow DRI, DRY, KISS, YAGNI, and Clean Code; keep every `.ts` and `.tsx` file strictly `<= 250` lines (zero exceptions or disable comments).
 - Use English-only UI copy and concise `Edit` / `Delete` action labels.

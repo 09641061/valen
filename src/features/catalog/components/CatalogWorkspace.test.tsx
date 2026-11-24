@@ -40,7 +40,6 @@ const sampleCategories: CategoryDto[] = [
         id: SVC_ID,
         category_id: CAT_ID,
         name: "Classic haircut",
-        description: "Includes wash",
         duration_minutes: 45,
         price_minor_units: 2500,
         currency_code: "USD",

@@ -32,7 +32,7 @@ export default defineConfig({
     ? undefined
     : {
         command: "bun run dev -- --hostname 127.0.0.1",
-        url: new URL("/agenda", baseURL).toString(),
+        url: new URL("/calendar", baseURL).toString(),
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         env: {

@@ -18,7 +18,6 @@ export async function insertService(
 ): Promise<ServiceDto> {
   const body: Record<string, unknown> = {
     name: input.name,
-    description: input.description,
     duration_minutes: input.duration_minutes,
     price_minor_units: input.price_minor_units,
     currency_code: input.currency_code,
@@ -51,7 +50,6 @@ export async function updateService(
     },
     body: JSON.stringify({
       name: input.name,
-      description: input.description,
       duration_minutes: input.duration_minutes,
       price_minor_units: input.price_minor_units,
       currency_code: input.currency_code,
