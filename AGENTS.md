@@ -6,7 +6,7 @@ Valen is intended to be a Next.js App Router project. At setup time, the reposit
 
 ## Required skills
 
-- For Next.js architecture, implementation, review, or testing, read `.agents/skills/nextjs-feature-based/SKILL.md` and the relevant references.
+- For Next.js architecture, implementation, review, or testing, use the `nextjs-feature-based` skill available in Pi and its relevant references.
 - Read the linked Cynthia domain skill when a task concerns its domain: `catalog`, `crm`, `organization`, `permissions`, or `scheduling`. Keep those domain boundaries separate.
 - Go-specific skills are intentionally not linked into this project.
 
