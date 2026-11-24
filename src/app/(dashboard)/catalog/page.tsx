@@ -1,0 +1,10 @@
+import type { Metadata } from "next";
+import { PagePlaceholder } from "@/components/page-placeholder";
+
+export const metadata: Metadata = {
+  title: "Catálogo",
+};
+
+export default function CatalogPage() {
+  return <PagePlaceholder title="Catálogo" />;
+}
