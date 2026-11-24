@@ -34,15 +34,15 @@ type NavigationLink = {
 };
 
 const primaryLinks: NavigationLink[] = [
-  { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
+  { href: "/conversations", label: "Conversations", icon: MessageCircle },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
-  { href: "/customers", label: "Clientes", icon: UsersRound },
-  { href: "/catalog", label: "Catálogo", icon: Tags },
+  { href: "/customers", label: "Customers", icon: UsersRound },
+  { href: "/catalog", label: "Catalog", icon: Tags },
 ];
 
 const organizationLink: NavigationLink = {
   href: "/organization",
-  label: "Organización",
+  label: "Organization",
   icon: Building2,
 };
 
@@ -98,24 +98,24 @@ export function AppSidebar() {
         <SidebarTrigger
           aria-label={
             isMobile
-              ? "Cerrar navegación"
+              ? "Close navigation"
               : state === "expanded"
-                ? "Contraer navegación"
-                : "Expandir navegación"
+                ? "Collapse navigation"
+                : "Expand navigation"
           }
           title={
             isMobile
-              ? "Cerrar navegación"
+              ? "Close navigation"
               : state === "expanded"
-                ? "Contraer navegación"
-                : "Expandir navegación"
+                ? "Collapse navigation"
+                : "Expand navigation"
           }
           className="ml-auto size-11 shrink-0 text-muted-foreground"
         />
       </SidebarHeader>
 
       <SidebarContent className="px-3.5 pb-4">
-        <nav aria-label="Navegación principal" className="flex min-h-full flex-col">
+        <nav aria-label="Main navigation" className="flex min-h-full flex-col">
           <SidebarGroup className="gap-1 p-0">
             <SidebarGroupLabel className="h-8 px-3 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
               CRM
@@ -155,12 +155,12 @@ export function AppSidebar() {
           </span>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-xs font-semibold text-foreground">Takodu</p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">Panel de negocio</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">Business workspace</p>
           </div>
           <Link
             href="/organization"
-            aria-label="Abrir Organización"
-            title="Abrir Organización"
+            aria-label="Open Organization"
+            title="Open Organization"
             onClick={onNavigate}
             className="grid size-10 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring group-data-[collapsible=icon]:size-11"
           >

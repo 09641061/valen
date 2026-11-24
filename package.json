@@ -9,6 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "validate": "bun run lint && bun run typecheck && bun run test",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },

@@ -15,6 +15,8 @@ Use this skill together with the Next.js feature-based skill before designing, i
 - Customize design tokens and component variants to match the approved product reference; mandatory shadcn use does not authorize changing the reference’s layout, labels, color roles, or interaction flow.
 - Use the project's configured shadcn base and icon library consistently. Use semantic elements, labelled controls, visible focus, and shadcn’s keyboard/focus behavior.
 - Keep interactive UI in small Client Components. Keep routes and data loading on the server where possible.
+- Follow DRI, DRY, KISS, YAGNI, and Clean Code; keep every `.ts` and `.tsx` file strictly `<= 250` lines (zero exceptions or disable comments).
+- Use English-only UI copy and concise `Edit` / `Delete` action labels.
 
 ## Setup
 

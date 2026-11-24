@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/page-placeholder";
+import { PagePlaceholder } from "@/components/PagePlaceholder";
 
 export default function OrganizationPage() {
-  return <PagePlaceholder title="Organización" />;
+  return <PagePlaceholder title="Organization" />;
 }

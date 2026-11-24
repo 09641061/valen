@@ -7,7 +7,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -23,8 +23,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SidebarInset className="min-h-svh bg-background">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
           <SidebarTrigger
-            aria-label="Abrir navegación"
-            title="Abrir navegación"
+            aria-label="Open navigation"
+            title="Open navigation"
             className="size-11 text-muted-foreground"
           />
           <Image src="/kodu-head.svg" alt="" width={24} height={24} />

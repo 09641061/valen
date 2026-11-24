@@ -16,7 +16,16 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+          ? {
+              launchOptions: {
+                executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+              },
+            }
+          : {}),
+      },
     },
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL
@@ -28,7 +37,7 @@ export default defineConfig({
         timeout: 120_000,
         env: {
           CYNTHIA_API_URL:
-            process.env.CYNTHIA_API_URL ?? "http://127.0.0.1:3010",
+            process.env.CYNTHIA_API_URL ?? "http://127.0.0.1:8081",
         },
       },
 });

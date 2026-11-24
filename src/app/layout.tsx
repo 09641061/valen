@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     default: "Takodu",
     template: "%s · Takodu",
   },
-  description: "Gestiona los servicios de tu negocio.",
+  description: "Manage your business services.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="es"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
