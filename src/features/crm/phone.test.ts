@@ -100,6 +100,13 @@ describe("crm phone helpers", () => {
       });
     });
 
+    it("returns both country code and phone number errors when both are empty", () => {
+      expect(validatePhoneParts("", "")).toEqual({
+        countryCodeError: "Enter a country code (e.g. +57)",
+        localNumberError: "Enter a phone number",
+      });
+    });
+
     it("rejects combined numbers shorter than 7 or longer than 15 total digits", () => {
       expect(validatePhoneParts("+57", "123")).toEqual({
         localNumberError:

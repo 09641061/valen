@@ -9,6 +9,35 @@ import { CustomersTableRow } from "./CustomersTableRow";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+function resolveSearchSync(params: {
+  searchQuery: string;
+  previousUrlQuery: string;
+  isSearching: boolean;
+  pendingQuery: string | null;
+  draftQuery: string;
+}): { clearPending: boolean; nextDraftQuery?: string } {
+  const {
+    searchQuery,
+    previousUrlQuery,
+    isSearching,
+    pendingQuery,
+    draftQuery,
+  } = params;
+  if (pendingQuery !== null) {
+    const settled =
+      searchQuery === pendingQuery &&
+      (!isSearching || searchQuery !== previousUrlQuery);
+    return { clearPending: settled };
+  }
+  if (
+    searchQuery !== previousUrlQuery &&
+    draftQuery.trim() === previousUrlQuery
+  ) {
+    return { clearPending: false, nextDraftQuery: searchQuery };
+  }
+  return { clearPending: false };
+}
+
 interface CustomersTableProps {
   customers: CustomerDto[];
   selectedCustomerId: string | null;
@@ -41,13 +70,22 @@ export function CustomersTable({
   onDeleteCustomer,
 }: CustomersTableProps) {
   const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
+  const [prevIsSearching, setPrevIsSearching] = useState(isSearching);
+  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
   const [draftQuery, setDraftQuery] = useState(searchQuery);
-  if (searchQuery !== prevSearchQuery) {
+  if (searchQuery !== prevSearchQuery || isSearching !== prevIsSearching) {
     const previousUrlQuery = prevSearchQuery;
     setPrevSearchQuery(searchQuery);
-    if (draftQuery.trim() === previousUrlQuery) {
-      setDraftQuery(searchQuery);
-    }
+    setPrevIsSearching(isSearching);
+    const sync = resolveSearchSync({
+      searchQuery,
+      previousUrlQuery,
+      isSearching,
+      pendingQuery,
+      draftQuery,
+    });
+    if (sync.clearPending) setPendingQuery(null);
+    if (sync.nextDraftQuery !== undefined) setDraftQuery(sync.nextDraftQuery);
   }
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -68,25 +106,30 @@ export function CustomersTable({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const canClean = draftQuery.length > 0 || searchQuery.length > 0;
 
+  function emitSearch(query: string) {
+    setPendingQuery(query === searchQuery && !isSearching ? null : query);
+    onSearchChange(query);
+  }
+
   function handleSearchInputChange(nextValue: string) {
     setDraftQuery(nextValue);
     clearPendingDebounce();
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      onSearchChange(nextValue.trim());
+      emitSearch(nextValue.trim());
     }, SEARCH_DEBOUNCE_MS);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     clearPendingDebounce();
-    onSearchChange(draftQuery.trim());
+    emitSearch(draftQuery.trim());
   }
 
   function handleClean() {
     clearPendingDebounce();
     setDraftQuery("");
-    onSearchChange("");
+    emitSearch("");
     searchInputRef.current?.focus();
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -89,7 +89,7 @@ export function CustomerFormDialog({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [duplicateCustomer, setDuplicateCustomer] =
     useState<CustomerDto | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function clearFeedback(scope: "phone" | "name" | "all") {
     setErrorMessage(null);
@@ -119,8 +119,9 @@ export function CustomerFormDialog({
     clearFeedback("all");
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
     clearFeedback("all");
 
     const trimmedName = name.trim();
@@ -134,12 +135,12 @@ export function CustomerFormDialog({
       return;
     }
 
-    const validatedPhone = phoneValidation.phone;
-    startTransition(async () => {
+    setIsSubmitting(true);
+    try {
       const result = await submitCustomerForm(
         customer,
         trimmedName,
-        validatedPhone,
+        phoneValidation.phone,
       );
       if (!result.ok) {
         setErrorMessage(result.message);
@@ -151,10 +152,16 @@ export function CustomerFormDialog({
       }
       onSaved(result.data);
       onOpenChange(false);
-    });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  const { title, description, submitLabel } = getFormCopy(isEditing, isPending);
+  const { title, description, submitLabel } = getFormCopy(
+    isEditing,
+    isSubmitting,
+  );
+  const nameError = fieldErrors.name?.[0];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -175,13 +182,18 @@ export function CustomerFormDialog({
                 clearFeedback("name");
               }}
               placeholder="Jane Doe"
-              disabled={isPending}
+              disabled={isSubmitting}
               aria-required="true"
-              aria-invalid={Boolean(fieldErrors.name?.[0])}
+              aria-invalid={Boolean(nameError)}
+              aria-describedby={nameError ? "customer-name-error" : undefined}
             />
-            {fieldErrors.name?.[0] && (
-              <p className="text-xs text-destructive" role="alert">
-                {fieldErrors.name[0]}
+            {nameError && (
+              <p
+                id="customer-name-error"
+                className="text-xs text-destructive"
+                role="alert"
+              >
+                {nameError}
               </p>
             )}
           </div>
@@ -204,7 +216,7 @@ export function CustomerFormDialog({
             localNumberError={
               phoneErrors.localNumberError ?? fieldErrors.phone?.[0]
             }
-            disabled={isPending}
+            disabled={isSubmitting}
           />
           <FormStatusFeedback
             duplicateCustomer={duplicateCustomer}
@@ -219,11 +231,11 @@ export function CustomerFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isPending}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isSubmitting}>
               {submitLabel}
             </Button>
           </DialogFooter>

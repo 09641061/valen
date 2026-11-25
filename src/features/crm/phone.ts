@@ -127,14 +127,18 @@ export function validatePhoneParts(
   const codeDigits = normalizeLocalNumberInput(countryCode);
   const localDigits = normalizeLocalNumberInput(localNumber);
 
-  if (!codeDigits) {
-    return { countryCodeError: "Enter a country code (e.g. +57)" };
-  }
-  if (codeDigits.startsWith("0")) {
-    return { countryCodeError: "Country code must start with 1-9" };
-  }
-  if (!localDigits) {
-    return { localNumberError: "Enter a phone number" };
+  const countryCodeError = !codeDigits
+    ? "Enter a country code (e.g. +57)"
+    : codeDigits.startsWith("0")
+      ? "Country code must start with 1-9"
+      : undefined;
+  const localNumberError = !localDigits ? "Enter a phone number" : undefined;
+
+  if (countryCodeError || localNumberError) {
+    return {
+      ...(countryCodeError ? { countryCodeError } : {}),
+      ...(localNumberError ? { localNumberError } : {}),
+    };
   }
 
   const phone = combinePhoneParts(codeDigits, localDigits);

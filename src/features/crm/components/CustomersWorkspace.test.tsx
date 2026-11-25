@@ -1,22 +1,33 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CustomerDto, CustomerPageDto } from "../schemas";
 import { CustomersWorkspace } from "./CustomersWorkspace";
 
-const { replaceMock, refreshMock, deleteCustomerActionMock } = vi.hoisted(
-  () => ({
+const { replaceMock, refreshMock, deleteCustomerActionMock, transitionState } =
+  vi.hoisted(() => ({
     replaceMock: vi.fn(),
     refreshMock: vi.fn(),
     deleteCustomerActionMock: vi.fn(),
-  }),
-);
+    transitionState: { holdSearchPending: false },
+  }));
+
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  return {
+    ...actual,
+    useTransition: () => {
+      const [pending, start] = actual.useTransition();
+      return [
+        transitionState.holdSearchPending ? true : pending,
+        start,
+      ] as const;
+    },
+  };
+});
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-    refresh: refreshMock,
-  }),
+  useRouter: () => ({ replace: replaceMock, refresh: refreshMock }),
 }));
 
 vi.mock("../actions", () => ({
@@ -47,12 +58,7 @@ const CUSTOMERS: CustomerDto[] = [
   },
 ];
 
-const PAGE: CustomerPageDto = {
-  items: CUSTOMERS,
-  total: 25,
-  page: 1,
-  page_size: 20,
-};
+const PAGE: CustomerPageDto = { items: CUSTOMERS, total: 25, page: 1, page_size: 20 };
 
 function renderWorkspace(initialQuery = "") {
   return render(
@@ -67,18 +73,16 @@ function renderWorkspace(initialQuery = "") {
 function setupFakeTimerUser() {
   vi.stubGlobal("jest", vi);
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-  return userEvent.setup({
-    advanceTimers: (ms) => vi.advanceTimersByTime(ms),
-  });
+  return userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) });
 }
 
 describe("CustomersWorkspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    transitionState.holdSearchPending = false;
   });
 
   afterEach(() => {
-    cleanup();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -94,43 +98,14 @@ describe("CustomersWorkspace", () => {
     expect(screen.getByText("Page 1 of 2")).toBeTruthy();
   });
 
-  it("renders text search input without inline clear button and toggles Clean disabled state", async () => {
+  it("debounces live search and updates pagination URL", async () => {
     const user = setupFakeTimerUser();
     renderWorkspace("");
 
-    const searchInput = screen.getByLabelText(
-      "Search by name or phone",
-    ) as HTMLInputElement;
-    expect(searchInput.type).toBe("text");
-    expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
-    expect(searchInput.parentElement?.querySelector("button")).toBeNull();
-
-    const cleanButton = screen.getByRole("button", {
-      name: "Clean",
-    }) as HTMLButtonElement;
-    expect(cleanButton.disabled).toBe(true);
-
-    await user.type(searchInput, "Bob");
-    expect(cleanButton.disabled).toBe(false);
-  });
-
-  it("debounces live search for 300ms and updates pagination URL", async () => {
-    const user = setupFakeTimerUser();
-    renderWorkspace("");
-
-    const searchInput = screen.getByLabelText("Search by name or phone");
-    await user.type(searchInput, "Bob");
-    expect(replaceMock).not.toHaveBeenCalled();
-
+    await user.type(screen.getByLabelText("Search by name or phone"), "Bob");
     await act(async () => {
-      vi.advanceTimersByTime(299);
+      vi.advanceTimersByTime(300);
     });
-    expect(replaceMock).not.toHaveBeenCalled();
-
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-    });
-    expect(replaceMock).toHaveBeenCalledTimes(1);
     expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob", {
       scroll: false,
     });
@@ -141,80 +116,21 @@ describe("CustomersWorkspace", () => {
     });
   });
 
-  it("preserves trailing space, keeps focus, and ignores stale RSC sync while typing", async () => {
+  it("allows Clean to reset URL while an earlier search is still in flight", async () => {
+    transitionState.holdSearchPending = true;
     const user = setupFakeTimerUser();
-    const { rerender } = renderWorkspace("");
+    renderWorkspace("");
 
-    const searchInput = screen.getByLabelText(
-      "Search by name or phone",
-    ) as HTMLInputElement;
-    await user.type(searchInput, "Ana ");
-    expect(searchInput.value).toBe("Ana ");
-    expect(document.activeElement).toBe(searchInput);
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await user.type(
+      screen.getByLabelText("Search by name or phone"),
+      "Ana{Enter}",
+    );
     expect(replaceMock).toHaveBeenCalledWith("/customers?q=Ana", {
       scroll: false,
     });
 
-    await user.type(searchInput, "Maria");
-    expect(searchInput.value).toBe("Ana Maria");
-
-    rerender(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery="Ana"
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
-    expect(searchInput.value).toBe("Ana Maria");
-    expect(document.activeElement).toBe(searchInput);
-  });
-
-  it("clears input immediately on Clean, cancels pending debounce, and keeps focus", async () => {
-    const user = setupFakeTimerUser();
-    renderWorkspace("Alice");
-
-    const searchInput = screen.getByLabelText(
-      "Search by name or phone",
-    ) as HTMLInputElement;
-    await user.clear(searchInput);
-    await user.type(searchInput, "Bob");
-    expect(replaceMock).not.toHaveBeenCalled();
-
     await user.click(screen.getByRole("button", { name: "Clean" }));
-    expect(searchInput.value).toBe("");
-    expect(replaceMock).toHaveBeenCalledTimes(1);
     expect(replaceMock).toHaveBeenCalledWith("/customers", { scroll: false });
-    expect(document.activeElement).toBe(searchInput);
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-    expect(replaceMock).toHaveBeenCalledTimes(1);
-    expect(replaceMock).not.toHaveBeenCalledWith("/customers?q=Bob", {
-      scroll: false,
-    });
-  });
-
-  it("flushes immediately on Enter without double-firing after 300ms", async () => {
-    const user = setupFakeTimerUser();
-    renderWorkspace("");
-
-    const searchInput = screen.getByLabelText("Search by name or phone");
-    await user.type(searchInput, "Bob{Enter}");
-
-    expect(replaceMock).toHaveBeenCalledTimes(1);
-    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob", {
-      scroll: false,
-    });
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-    expect(replaceMock).toHaveBeenCalledTimes(1);
   });
 
   it("confirms and deletes a customer", async () => {

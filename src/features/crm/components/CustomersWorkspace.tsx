@@ -52,7 +52,7 @@ export function CustomersWorkspace({
   }
 
   function handleSearchChange(q: string) {
-    if (q === initialQuery) return;
+    if (q === initialQuery && !isSearching) return;
     updateUrl({ q, page: 1, customerId: undefined });
   }
 
