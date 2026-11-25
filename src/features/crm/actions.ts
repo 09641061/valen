@@ -1,0 +1,182 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { ZodError } from "zod";
+import {
+  CrmApiError,
+  createCustomer,
+  deleteCustomer,
+  fetchConversationMessages,
+  fetchConversations,
+  fetchCustomer,
+  updateCustomer,
+  type CrmErrorCode,
+} from "./data-access";
+import {
+  CreateCustomerSchema,
+  CustomerSchema,
+  DeleteCustomerSchema,
+  UpdateCustomerSchema,
+  type ConversationDto,
+  type CreateCustomerInput,
+  type CustomerDto,
+  type DeleteCustomerInput,
+  type MessageDto,
+  type UpdateCustomerInput,
+} from "./schemas";
+
+export type CrmActionResult<T> =
+  | { ok: true; data: T }
+  | {
+      ok: false;
+      code: CrmErrorCode;
+      message: string;
+      fieldErrors?: Record<string, string[]>;
+      existingCustomer?: CustomerDto;
+    };
+
+export interface RecentConversationOption {
+  conversation: ConversationDto;
+  customer: CustomerDto | null;
+}
+
+function toActionError<T>(error: unknown): CrmActionResult<T> {
+  if (error instanceof ZodError) {
+    const fieldErrors = error.issues.reduce<Record<string, string[]>>(
+      (acc, issue) => {
+        const field = issue.path.join(".") || "form";
+        acc[field] = [...(acc[field] ?? []), issue.message];
+        return acc;
+      },
+      {},
+    );
+    return {
+      ok: false,
+      code: "VALIDATION_ERROR",
+      message: error.issues[0]?.message ?? "Invalid input",
+      fieldErrors,
+    };
+  }
+
+  if (error instanceof CrmApiError) {
+    const parsedExisting =
+      error.existingCustomer !== undefined
+        ? CustomerSchema.safeParse(error.existingCustomer)
+        : null;
+    return {
+      ok: false,
+      code: error.code,
+      message: error.message,
+      fieldErrors: error.fieldErrors,
+      existingCustomer: parsedExisting?.success
+        ? parsedExisting.data
+        : undefined,
+    };
+  }
+
+  return {
+    ok: false,
+    code: "UPSTREAM_ERROR",
+    message: "An unexpected error occurred while processing the request",
+  };
+}
+
+export async function createCustomerAction(
+  input: CreateCustomerInput,
+): Promise<CrmActionResult<CustomerDto>> {
+  try {
+    const validated = CreateCustomerSchema.parse(input);
+    const created = await createCustomer(validated);
+    revalidatePath("/customers");
+    return { ok: true, data: created };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function updateCustomerAction(
+  input: UpdateCustomerInput,
+): Promise<CrmActionResult<CustomerDto>> {
+  try {
+    const { id, version, name, phone } = UpdateCustomerSchema.parse(input);
+    const updated = await updateCustomer(id, version, { name, phone });
+    revalidatePath("/customers");
+    return { ok: true, data: updated };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function deleteCustomerAction(
+  input: DeleteCustomerInput,
+): Promise<CrmActionResult<null>> {
+  try {
+    const { id } = DeleteCustomerSchema.parse(input);
+    await deleteCustomer(id);
+    revalidatePath("/customers");
+    return { ok: true, data: null };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function loadCustomerConversationsAction(
+  customerId: string,
+): Promise<CrmActionResult<ConversationDto[]>> {
+  try {
+    const page = await fetchConversations({
+      customerId,
+      status: "all",
+      page: 1,
+      pageSize: 50,
+    });
+    return { ok: true, data: page.items };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function loadConversationMessagesAction(
+  conversationId: string,
+): Promise<CrmActionResult<MessageDto[]>> {
+  try {
+    const items = await fetchConversationMessages(conversationId, 100);
+    return { ok: true, data: items };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function loadRecentConversationsAction(): Promise<
+  CrmActionResult<RecentConversationOption[]>
+> {
+  try {
+    const page = await fetchConversations({
+      status: "all",
+      page: 1,
+      pageSize: 20,
+    });
+    const uniqueCustomerIds = Array.from(
+      new Set(page.items.map((c) => c.customer_id)),
+    );
+    const customerEntries = await Promise.all(
+      uniqueCustomerIds.map(async (id) => {
+        try {
+          return [id, await fetchCustomer(id)] as const;
+        } catch {
+          return [id, null] as const;
+        }
+      }),
+    );
+    const customerMap = new Map<string, CustomerDto | null>(customerEntries);
+    const options: RecentConversationOption[] = page.items.map(
+      (conversation) => ({
+        conversation,
+        customer: customerMap.get(conversation.customer_id) ?? null,
+      }),
+    );
+    return { ok: true, data: options };
+  } catch (error) {
+    return toActionError(error);
+  }
+}

@@ -21,6 +21,7 @@ export interface ProblemDetails {
   detail?: string;
   instance?: string;
   errors?: ProblemField[] | Record<string, string[] | string>;
+  existing_customer?: unknown;
 }
 
 /**
@@ -30,18 +31,21 @@ export class CynthiaApiError extends Error {
   readonly code: ApiErrorCode;
   readonly status: number;
   readonly fieldErrors?: Record<string, string[]>;
+  readonly existingCustomer?: unknown;
 
   constructor(
     code: ApiErrorCode,
     message: string,
     status: number,
     fieldErrors?: Record<string, string[]>,
+    existingCustomer?: unknown,
   ) {
     super(message);
     this.name = "CynthiaApiError";
     this.code = code;
     this.status = status;
     this.fieldErrors = fieldErrors;
+    this.existingCustomer = existingCustomer;
   }
 }
 
@@ -113,7 +117,15 @@ async function parseErrorResponse(
       const message =
         problem.detail || problem.title || `Server error (${response.status})`;
       const fieldErrors = normalizeFieldErrors(problem.errors);
-      const err = new CynthiaApiError(code, message, response.status, fieldErrors);
+      const existingCustomer =
+        response.status === 409 ? problem.existing_customer : undefined;
+      const err = new CynthiaApiError(
+        code,
+        message,
+        response.status,
+        fieldErrors,
+        existingCustomer,
+      );
       err.name = errorName;
       return err;
     } catch {
