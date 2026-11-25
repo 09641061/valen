@@ -21,7 +21,6 @@ const validServiceDto = {
   name: "Classic haircut",
   duration_minutes: 45,
   price_minor_units: 2500,
-  currency_code: "USD",
   sort_order: 1,
   version: 1,
   created_at: "2026-01-01T00:00:00Z",
@@ -33,7 +32,6 @@ const validCreateService = {
   name: "Haircut",
   duration_minutes: 30,
   price_minor_units: 1000,
-  currency_code: "USD",
 };
 
 describe("catalog category schemas", () => {
@@ -89,10 +87,8 @@ describe("catalog service schemas", () => {
       ...validCreateService,
       duration_minutes: 1,
       price_minor_units: 0,
-      currency_code: "usd",
     });
     expect(min.success).toBe(true);
-    if (min.success) expect(min.data.currency_code).toBe("USD");
 
     expect(
       CreateServiceSchema.safeParse({
@@ -100,7 +96,6 @@ describe("catalog service schemas", () => {
         name: "S".repeat(120),
         duration_minutes: 1440,
         price_minor_units: 999_999,
-        currency_code: "COP",
         sort_order: 1,
       }).success,
     ).toBe(true);
@@ -116,10 +111,6 @@ describe("catalog service schemas", () => {
     { price_minor_units: -1 },
     { price_minor_units: -100 },
     { price_minor_units: 12.5 },
-    { currency_code: "US" },
-    { currency_code: "USDD" },
-    { currency_code: "12A" },
-    { currency_code: "" },
     { category_id: "invalid-uuid" },
     { sort_order: 0 },
   ])("rejects invalid CreateServiceSchema override %j", (override) => {
@@ -129,11 +120,7 @@ describe("catalog service schemas", () => {
     ).toBe(false);
   });
 
-  it("rejects lowercase currency_code in ServiceSchema DTO", () => {
-    expect(
-      ServiceSchema.safeParse({ ...validServiceDto, currency_code: "usd" })
-        .success,
-    ).toBe(false);
+  it("validates ServiceSchema DTO", () => {
     expect(ServiceSchema.safeParse(validServiceDto).success).toBe(true);
   });
 
@@ -146,7 +133,6 @@ describe("catalog service schemas", () => {
         name: "Premium haircut",
         duration_minutes: 60,
         price_minor_units: 3500,
-        currency_code: "EUR",
       },
       valid: true,
     },
@@ -158,7 +144,6 @@ describe("catalog service schemas", () => {
         name: "Premium haircut",
         duration_minutes: 60,
         price_minor_units: 3500,
-        currency_code: "EUR",
       },
       valid: false,
     },

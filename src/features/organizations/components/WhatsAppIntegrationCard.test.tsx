@@ -18,6 +18,7 @@ function makeOrganization(
     business_type: "Salon",
     contact_email: "hello@takodu.com",
     timezone: "UTC",
+    currency_code: "USD",
     business_hours: {
       monday: { is_open: true, open_time: "09:00", close_time: "18:00" },
       tuesday: { is_open: true, open_time: "09:00", close_time: "18:00" },

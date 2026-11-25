@@ -1,6 +1,6 @@
 "use client";
 
-import { DndContext, DragOverlay, closestCorners } from "@dnd-kit/core";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
 import { useMemo, useOptimistic, useState } from "react";
@@ -20,9 +20,13 @@ import { type CatalogOptimisticAction, useCatalogDnd } from "./useCatalogDnd";
 
 interface CatalogWorkspaceProps {
   initialCategories: CategoryDto[];
+  currencyCode?: string;
 }
 
-export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
+export function CatalogWorkspace({
+  initialCategories,
+  currencyCode = "USD",
+}: CatalogWorkspaceProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [staleMessage, setStaleMessage] = useState<string | null>(null);
@@ -59,25 +63,6 @@ export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const isFiltering = normalizedQuery.length > 0;
 
-  const visibleCategories = useMemo(() => {
-    if (!normalizedQuery) return optimisticCategories;
-
-    return optimisticCategories
-      .map((category) => {
-        if (category.name.toLowerCase().includes(normalizedQuery)) {
-          return category;
-        }
-        const matchingServices = category.services.filter(
-          (service) =>
-            service.name.toLowerCase().includes(normalizedQuery),
-        );
-        return matchingServices.length > 0
-          ? { ...category, services: matchingServices }
-          : null;
-      })
-      .filter((category): category is CategoryDto => category !== null);
-  }, [optimisticCategories, normalizedQuery]);
-
   function handleMutationSuccess() {
     setStaleMessage(null);
     setErrorMessage(null);
@@ -92,6 +77,26 @@ export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
     onError: setErrorMessage,
     onSuccess: handleMutationSuccess,
   });
+
+  const visibleCategories = useMemo(() => {
+    const source = dnd.displayCategories;
+    if (!normalizedQuery) return source;
+
+    return source
+      .map((category) => {
+        if (category.name.toLowerCase().includes(normalizedQuery)) {
+          return category;
+        }
+        const matchingServices = category.services.filter(
+          (service) =>
+            service.name.toLowerCase().includes(normalizedQuery),
+        );
+        return matchingServices.length > 0
+          ? { ...category, services: matchingServices }
+          : null;
+      })
+      .filter((category): category is CategoryDto => category !== null);
+  }, [dnd.displayCategories, normalizedQuery]);
 
   const categoryDndIds = visibleCategories.map((c) => toCategoryDndId(c.id));
 
@@ -129,8 +134,9 @@ export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
         <DndContext
           id="catalog-dnd-context"
           sensors={dnd.sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={dnd.collisionDetection}
           onDragStart={dnd.handleDragStart}
+          onDragOver={dnd.handleDragOver}
           onDragEnd={dnd.handleDragEnd}
           onDragCancel={dnd.handleDragCancel}
         >
@@ -143,7 +149,13 @@ export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
                 <CategoryCard
                   key={category.id}
                   category={category}
+                  currencyCode={currencyCode}
                   isFiltering={isFiltering}
+                  isDraggingService={dnd.activeDragKind === "service"}
+                  isServiceDropTarget={
+                    dnd.activeDragKind === "service" &&
+                    dnd.activeDragCategoryId === category.id
+                  }
                   onAddService={(categoryId) =>
                     setServiceDialogState({
                       open: true,
@@ -209,6 +221,7 @@ export function CatalogWorkspace({ initialCategories }: CatalogWorkspaceProps) {
         }
         categoryId={serviceDialogState.categoryId}
         service={serviceDialogState.service}
+        currencyCode={currencyCode}
         onStaleVersion={setStaleMessage}
         onSuccess={handleMutationSuccess}
       />

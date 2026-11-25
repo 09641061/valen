@@ -42,7 +42,6 @@ const sampleCategories: CategoryDto[] = [
         name: "Classic haircut",
         duration_minutes: 45,
         price_minor_units: 2500,
-        currency_code: "USD",
         sort_order: 1,
         version: 1,
         created_at: "2026-01-01T00:00:00Z",
@@ -68,7 +67,12 @@ describe("Service CRUD in CatalogWorkspace", () => {
       },
     });
 
-    render(<CatalogWorkspace initialCategories={sampleCategories} />);
+    render(
+      <CatalogWorkspace
+        initialCategories={sampleCategories}
+        currencyCode="PEN"
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Add service" }));
     await user.click(screen.getByRole("button", { name: "Create service" }));
@@ -77,7 +81,7 @@ describe("Service CRUD in CatalogWorkspace", () => {
     expect(actions.createServiceAction).not.toHaveBeenCalled();
 
     await user.type(screen.getByLabelText("Service name"), "Beard trim");
-    const priceInput = screen.getByLabelText("Price");
+    const priceInput = screen.getByLabelText("Price (PEN)");
     await user.clear(priceInput);
     await user.type(priceInput, "15.50");
     await user.click(screen.getByRole("button", { name: "Create service" }));
@@ -88,7 +92,6 @@ describe("Service CRUD in CatalogWorkspace", () => {
         name: "Beard trim",
         duration_minutes: 30,
         price_minor_units: 1550,
-        currency_code: "USD",
       });
     });
     expect(mockRefresh).toHaveBeenCalled();

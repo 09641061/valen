@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { CurrencyCombobox } from "@/components/ui/currency-combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -29,6 +30,9 @@ export function BusinessDetailsCard({
   const [name, setName] = useState(organization.name);
   const [contactEmail, setContactEmail] = useState(organization.contact_email);
   const [selectedTimezone, setSelectedTimezone] = useState<string | null>(null);
+  const [currencyCode, setCurrencyCode] = useState(
+    organization.currency_code || "USD",
+  );
   const localTimezone = useLocalTimezone();
   const [fieldErrors, setFieldErrors] = useState<BusinessDetailsFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -50,6 +54,7 @@ export function BusinessDetailsCard({
       name,
       contact_email: contactEmail,
       timezone,
+      currency_code: currencyCode,
     };
   }
 
@@ -89,6 +94,7 @@ export function BusinessDetailsCard({
       setName(result.data.name);
       setContactEmail(result.data.contact_email);
       setSelectedTimezone(result.data.timezone);
+      setCurrencyCode(result.data.currency_code);
       setFieldErrors({});
       setSavedMessage("Saved");
     });
@@ -154,7 +160,7 @@ export function BusinessDetailsCard({
         ) : null}
       </div>
 
-      <div className="space-y-1.5 sm:col-span-2">
+      <div className="space-y-1.5">
         <Label htmlFor="business-timezone">Timezone</Label>
         <TimezoneCombobox
           id="business-timezone"
@@ -168,6 +174,23 @@ export function BusinessDetailsCard({
         />
         {fieldErrors.timezone ? (
           <p className="text-xs text-destructive">{fieldErrors.timezone}</p>
+        ) : null}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="business-currency">Currency</Label>
+        <CurrencyCombobox
+          id="business-currency"
+          value={currencyCode}
+          aria-invalid={Boolean(fieldErrors.currency_code)}
+          onValueChange={(value) => {
+            setCurrencyCode(value);
+            setSavedMessage(null);
+            setFieldErrors((p) => ({ ...p, currency_code: undefined }));
+          }}
+        />
+        {fieldErrors.currency_code ? (
+          <p className="text-xs text-destructive">{fieldErrors.currency_code}</p>
         ) : null}
       </div>
     </OrganizationFormCard>

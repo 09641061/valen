@@ -17,19 +17,12 @@ const priceMinorUnitsSchema = z
   .int("Price must be expressed in integer minor units")
   .min(0, "Price cannot be negative");
 
-const currencyCodeSchema = z
-  .string()
-  .trim()
-  .toUpperCase()
-  .regex(/^[A-Z]{3}$/, "Invalid currency code (e.g. USD, COP, EUR)");
-
 export const ServiceSchema = z.object({
   id: z.string().uuid(),
   category_id: z.string().uuid(),
   name: trimmedNameSchema,
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
-  currency_code: z.string().regex(/^[A-Z]{3}$/),
   sort_order: z.number().int().min(1),
   version: z.number().int().min(1),
   created_at: z.string(),
@@ -74,7 +67,6 @@ export const CreateServiceSchema = z.object({
   name: trimmedNameSchema,
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
-  currency_code: currencyCodeSchema,
   sort_order: z.number().int().min(1).optional(),
 });
 
@@ -84,7 +76,6 @@ export const UpdateServiceSchema = z.object({
   name: trimmedNameSchema,
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
-  currency_code: currencyCodeSchema,
 });
 
 export const DeleteServiceSchema = z.object({

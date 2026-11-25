@@ -24,6 +24,7 @@ import { toServiceDndId } from "./dnd-ids";
 
 interface ServiceRowProps {
   service: ServiceDto;
+  currencyCode?: string;
   isFiltering: boolean;
   onEdit: (service: ServiceDto) => void;
   onDelete: (service: ServiceDto) => void;
@@ -31,6 +32,7 @@ interface ServiceRowProps {
 
 export function ServiceRow({
   service,
+  currencyCode = "USD",
   isFiltering,
   onEdit,
   onDelete,
@@ -91,7 +93,7 @@ export function ServiceRow({
         </Badge>
 
         <span className="min-w-20 text-right text-sm font-semibold tabular-nums text-foreground">
-          {formatPrice(service.price_minor_units, service.currency_code)}
+          {formatPrice(service.price_minor_units, currencyCode)}
         </span>
 
         <DropdownMenu>

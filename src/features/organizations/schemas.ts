@@ -87,6 +87,7 @@ export const OrganizationSchema = z.object({
   business_type: z.string(),
   contact_email: z.string(),
   timezone: z.string(),
+  currency_code: z.string().regex(/^[A-Z]{3}$/).default("USD"),
   business_hours: BusinessHoursSchema,
   ai_instructions: z.string(),
   whatsapp_phone_number: z.string().default(""),
@@ -113,6 +114,11 @@ export const UpdateBusinessDetailsSchema = z.object({
     .max(254, "Contact email must not exceed 254 characters")
     .email("Enter a valid email address"),
   timezone: z.string().trim().min(1, "Timezone is required").max(120),
+  currency_code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, "Invalid currency code (e.g. USD, PEN, EUR)"),
 });
 
 export type UpdateBusinessDetailsInput = z.infer<
@@ -120,7 +126,7 @@ export type UpdateBusinessDetailsInput = z.infer<
 >;
 
 export type BusinessDetailsFieldErrors = Partial<
-  Record<"name" | "contact_email" | "timezone", string>
+  Record<"name" | "contact_email" | "timezone" | "currency_code", string>
 >;
 
 export function validateBusinessDetails(
@@ -132,7 +138,10 @@ export function validateBusinessDetails(
   for (const issue of parsed.error.issues) {
     const key = issue.path[0];
     if (
-      (key === "name" || key === "contact_email" || key === "timezone") &&
+      (key === "name" ||
+        key === "contact_email" ||
+        key === "timezone" ||
+        key === "currency_code") &&
       !errors[key]
     ) {
       errors[key] = issue.message;

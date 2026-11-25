@@ -2,15 +2,6 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const CURRENCY_OPTIONS = ["COP", "USD", "EUR", "MXN"] as const;
 
 interface ServiceFormFieldsProps {
   name: string;
@@ -22,7 +13,6 @@ interface ServiceFormFieldsProps {
   onNameChange: (value: string) => void;
   onDurationChange: (value: string) => void;
   onPriceChange: (value: string) => void;
-  onCurrencyChange: (value: string) => void;
 }
 
 export function ServiceFormFields({
@@ -35,7 +25,6 @@ export function ServiceFormFields({
   onNameChange,
   onDurationChange,
   onPriceChange,
-  onCurrencyChange,
 }: ServiceFormFieldsProps) {
   return (
     <>
@@ -59,7 +48,7 @@ export function ServiceFormFields({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="service-duration">Duration (min)</Label>
           <Input
@@ -81,7 +70,7 @@ export function ServiceFormFields({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="service-price">Price</Label>
+          <Label htmlFor="service-price">Price ({currencyCode})</Label>
           <Input
             id="service-price"
             name="price"
@@ -96,33 +85,6 @@ export function ServiceFormFields({
           {fieldErrors.price_minor_units ? (
             <p role="alert" className="text-sm text-destructive">
               {fieldErrors.price_minor_units}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="service-currency">Currency</Label>
-          <Select
-            value={currencyCode}
-            onValueChange={(value) => {
-              if (value) onCurrencyChange(value);
-            }}
-            disabled={isPending}
-          >
-            <SelectTrigger id="service-currency" className="w-full">
-              <SelectValue placeholder="Currency" />
-            </SelectTrigger>
-            <SelectContent>
-              {CURRENCY_OPTIONS.map((code) => (
-                <SelectItem key={code} value={code}>
-                  {code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {fieldErrors.currency_code ? (
-            <p role="alert" className="text-sm text-destructive">
-              {fieldErrors.currency_code}
             </p>
           ) : null}
         </div>
