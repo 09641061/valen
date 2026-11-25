@@ -4,6 +4,7 @@ import {
   updateAiInstructionsAction,
   updateBusinessDetailsAction,
   updateBusinessHoursAction,
+  updateWhatsAppConfigAction,
 } from "./actions";
 import * as dataAccess from "./data-access";
 
@@ -161,5 +162,43 @@ describe("organizations server actions", () => {
     });
 
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("validates and executes updateWhatsAppConfigAction", async () => {
+    const invalid = await updateWhatsAppConfigAction({
+      version: 1,
+      whatsapp_enabled: true,
+      whatsapp_phone_number: "",
+      whatsapp_phone_number_id: "abc",
+    });
+    expect(invalid.ok).toBe(false);
+    if (!invalid.ok) {
+      expect(invalid.code).toBe("VALIDATION_ERROR");
+      expect(invalid.fieldErrors?.whatsapp_phone_number).toBeDefined();
+      expect(invalid.fieldErrors?.whatsapp_phone_number_id).toBeDefined();
+    }
+    expect(dataAccess.patchOrganization).not.toHaveBeenCalled();
+
+    const updatedOrg = {
+      ...sampleOrganization,
+      whatsapp_enabled: true,
+      whatsapp_phone_number: "+51994356103",
+      whatsapp_phone_number_id: "106540352242922",
+    };
+    vi.mocked(dataAccess.patchOrganization).mockResolvedValueOnce(updatedOrg);
+
+    const res = await updateWhatsAppConfigAction({
+      version: 1,
+      whatsapp_enabled: true,
+      whatsapp_phone_number: "+51 994-356-103",
+      whatsapp_phone_number_id: "106540352242922",
+    });
+    expect(res).toEqual({ ok: true, data: updatedOrg });
+    expect(dataAccess.patchOrganization).toHaveBeenCalledWith(1, {
+      whatsapp_enabled: true,
+      whatsapp_phone_number: "+51994356103",
+      whatsapp_phone_number_id: "106540352242922",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/organization");
   });
 });

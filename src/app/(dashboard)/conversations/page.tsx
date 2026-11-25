@@ -67,15 +67,12 @@ async function loadInboxState(
       initialMessages,
       loadError: null,
     };
-  } catch (error) {
+  } catch {
     return {
       hydrated: [],
       selectedId: null,
       initialMessages: [],
-      loadError:
-        error instanceof Error
-          ? error.message
-          : "Unable to load conversations.",
+      loadError: "Unable to load conversations right now. Please try again.",
     };
   }
 }

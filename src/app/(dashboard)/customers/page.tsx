@@ -39,9 +39,8 @@ export default async function CustomersPage({
 
   try {
     customerPage = await getCustomers({ q: q || undefined, page, pageSize: 20 });
-  } catch (error) {
-    loadError =
-      error instanceof Error ? error.message : "Unable to load customers.";
+  } catch {
+    loadError = "Unable to load customers right now. Please try again.";
   }
 
   const selectedCustomer =

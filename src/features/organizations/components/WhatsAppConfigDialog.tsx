@@ -90,6 +90,14 @@ export function WhatsAppConfigDialog({
           onStaleVersion(result.message);
           onOpenChange(false);
         } else {
+          if (result.fieldErrors) {
+            setFieldErrors({
+              whatsapp_phone_number:
+                result.fieldErrors.whatsapp_phone_number?.[0],
+              whatsapp_phone_number_id:
+                result.fieldErrors.whatsapp_phone_number_id?.[0],
+            });
+          }
           setErrorMessage(result.message);
         }
         return;

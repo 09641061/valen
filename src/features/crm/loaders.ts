@@ -71,6 +71,6 @@ export async function hydrateConversationsWithCustomers(
 
 export async function openCrmEventStream(
   signal?: AbortSignal,
-): Promise<Response> {
+): Promise<ReadableStream<Uint8Array>> {
   return fetchCrmEventStream(signal);
 }

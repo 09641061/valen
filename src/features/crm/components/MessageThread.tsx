@@ -1,5 +1,3 @@
-"use client";
-
 import { Lock, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateGroup, formatTimestamp } from "../format";

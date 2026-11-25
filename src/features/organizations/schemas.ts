@@ -162,7 +162,7 @@ export type UpdateAiInstructionsInput = z.infer<
 >;
 
 const WHATSAPP_E164_REGEX = /^\+[1-9][0-9]{6,14}$/;
-const WHATSAPP_PHONE_ID_REGEX = /^[0-9]+$/;
+const WHATSAPP_PHONE_ID_REGEX = /^[0-9]{1,64}$/;
 
 export const UpdateWhatsAppConfigSchema = z
   .object({

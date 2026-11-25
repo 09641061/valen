@@ -123,4 +123,18 @@ describe("crm actions", () => {
     expect(convs.ok).toBe(true);
     expect(msgs.ok).toBe(true);
   });
+
+  it("rejects invalid UUIDs in loadCustomerConversationsAction and loadConversationMessagesAction", async () => {
+    const convs = await loadCustomerConversationsAction("not-a-uuid");
+    const msgs = await loadConversationMessagesAction("../other");
+
+    expect(convs.ok).toBe(false);
+    if (!convs.ok) expect(convs.code).toBe("VALIDATION_ERROR");
+
+    expect(msgs.ok).toBe(false);
+    if (!msgs.ok) expect(msgs.code).toBe("VALIDATION_ERROR");
+
+    expect(fetchConversations).not.toHaveBeenCalled();
+    expect(fetchConversationMessages).not.toHaveBeenCalled();
+  });
 });

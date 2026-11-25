@@ -21,6 +21,8 @@ const CustomerNameSchema = z
   .min(1, "Name is required")
   .max(160, "Name must be 160 characters or fewer");
 
+export const UuidSchema = z.string().uuid();
+
 export const CustomerSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),

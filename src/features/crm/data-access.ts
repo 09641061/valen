@@ -179,8 +179,8 @@ export async function updateConversationStatus(
 
 export async function fetchCrmEventStream(
   signal?: AbortSignal,
-): Promise<Response> {
-  return cynthiaFetch(
+): Promise<ReadableStream<Uint8Array>> {
+  const res = await cynthiaFetch(
     "/v1/crm/events",
     {
       headers: {
@@ -190,4 +190,14 @@ export async function fetchCrmEventStream(
     },
     ERROR_NAME,
   );
+  if (!res.body) {
+    throw new CynthiaApiError(
+      "UPSTREAM_ERROR",
+      "CRM event stream unavailable",
+      502,
+      undefined,
+      ERROR_NAME,
+    );
+  }
+  return res.body;
 }

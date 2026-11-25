@@ -20,6 +20,7 @@ import {
   CustomerSchema,
   DeleteCustomerSchema,
   UpdateCustomerSchema,
+  UuidSchema,
   type ConversationDto,
   type CreateCustomerInput,
   type CustomerDto,
@@ -124,8 +125,9 @@ export async function loadCustomerConversationsAction(
   customerId: string,
 ): Promise<CrmActionResult<ConversationDto[]>> {
   try {
+    const validatedId = UuidSchema.parse(customerId);
     const page = await fetchConversations({
-      customerId,
+      customerId: validatedId,
       status: "all",
       page: 1,
       pageSize: 50,
@@ -140,7 +142,8 @@ export async function loadConversationMessagesAction(
   conversationId: string,
 ): Promise<CrmActionResult<MessageDto[]>> {
   try {
-    const items = await fetchConversationMessages(conversationId, 100);
+    const validatedId = UuidSchema.parse(conversationId);
+    const items = await fetchConversationMessages(validatedId, 100);
     return { ok: true, data: items };
   } catch (error) {
     return toActionError(error);
