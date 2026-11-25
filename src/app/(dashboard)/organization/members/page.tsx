@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AccessDeniedCard } from "@/features/iam/components/AccessDeniedCard";
 import { MembersWorkspace } from "@/features/iam/components/MembersWorkspace";
-import { getMembers, getRoles, requireCurrentActor } from "@/features/iam/loaders";
+import { getMembers, requireCurrentActor } from "@/features/iam/loaders";
 import { PERMISSIONS, hasPermission } from "@/features/iam/permissions";
 
 export const dynamic = "force-dynamic";
@@ -23,12 +23,6 @@ export default async function MembersPage() {
     );
   }
 
-  const [members, roles] = await Promise.all([getMembers(), getRoles()]);
-  return (
-    <MembersWorkspace
-      actor={actor}
-      initialMembers={members}
-      roles={roles}
-    />
-  );
+  const members = await getMembers();
+  return <MembersWorkspace actor={actor} initialMembers={members} />;
 }

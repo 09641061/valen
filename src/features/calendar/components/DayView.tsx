@@ -98,12 +98,7 @@ export function DayView({
               >
                 {getInitials(person.name)}
               </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{person.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {person.role_label || "Staff"}
-                </p>
-              </div>
+              <span className="truncate text-sm font-medium">{person.name}</span>
             </div>
           ))}
 

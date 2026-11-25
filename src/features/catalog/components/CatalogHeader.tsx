@@ -1,8 +1,8 @@
 "use client";
 
-import { Plus, Search, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 
 interface CatalogHeaderProps {
   searchQuery: string;
@@ -40,32 +40,13 @@ export function CatalogHeader({
       </header>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 sm:max-w-sm">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <Input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search categories or services..."
-            aria-label="Search catalog"
-            className="pr-8 pl-9"
-          />
-          {isFiltering ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              aria-label="Clear search"
-              onClick={() => onSearchChange("")}
-              className="absolute top-1/2 right-1.5 -translate-y-1/2 text-muted-foreground"
-            >
-              <X className="size-3.5" aria-hidden="true" />
-            </Button>
-          ) : null}
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Search categories or services..."
+          ariaLabel="Search catalog"
+          className="flex-1 sm:max-w-sm"
+        />
 
         {isFiltering ? (
           <p className="text-xs text-muted-foreground">

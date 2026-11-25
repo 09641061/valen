@@ -1,38 +1,69 @@
 "use client";
 
-import { ArrowDown, ArrowUp } from "lucide-react";
-import { cn } from "cn";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { RoleDto } from "../schemas";
 
 export function RoleListItem({
   role,
   isSelected,
   showReorder,
-  canMoveUp,
-  canMoveDown,
+  canDrag,
   onSelect,
-  onMoveUp,
-  onMoveDown,
 }: {
   role: RoleDto;
   isSelected: boolean;
   showReorder: boolean;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
+  canDrag: boolean;
   onSelect: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: role.id,
+    disabled: !showReorder || !canDrag,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
         "flex items-center gap-2 rounded-lg border p-2.5 transition-colors",
         isSelected
           ? "border-primary/40 bg-accent/60"
           : "border-border bg-card hover:bg-muted/40",
+        isDragging && "z-10 opacity-60 shadow-md ring-2 ring-primary/30",
       )}
     >
+      {showReorder ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label={`Reorder ${role.name}`}
+          disabled={!canDrag}
+          className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing disabled:cursor-not-allowed"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical aria-hidden="true" className="size-4" />
+        </Button>
+      ) : null}
+
       <button
         type="button"
         onClick={onSelect}
@@ -45,33 +76,6 @@ export function RoleListItem({
           {role.permissions.length} permissions
         </p>
       </button>
-
-      {showReorder ? (
-        <div className="flex shrink-0 items-center gap-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            aria-label={`Move ${role.name} up`}
-            disabled={!canMoveUp}
-            onClick={onMoveUp}
-          >
-            <ArrowUp aria-hidden="true" className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            aria-label={`Move ${role.name} down`}
-            disabled={!canMoveDown}
-            onClick={onMoveDown}
-          >
-            <ArrowDown aria-hidden="true" className="size-3.5" />
-          </Button>
-        </div>
-      ) : null}
     </div>
   );
 }

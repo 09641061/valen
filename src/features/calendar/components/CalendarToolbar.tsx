@@ -4,7 +4,7 @@ import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, UsersIcon } from "lucide-
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   Popover,
   PopoverContent,
@@ -144,11 +144,12 @@ export function CalendarToolbar({
               </p>
             ) : (
               <div className="space-y-1.5">
-                <Input
+                <SearchInput
+                  size="sm"
                   value={peopleQuery}
-                  onChange={(e) => setPeopleQuery(e.target.value)}
+                  onChange={setPeopleQuery}
                   placeholder="Search people..."
-                  aria-label="Search people"
+                  ariaLabel="Search people"
                   autoFocus
                 />
                 <div className="max-h-60 space-y-1 overflow-y-auto">

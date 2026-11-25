@@ -2,8 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Crown, LogOut } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +25,6 @@ export function AccountSettingsForm({
   const [actor, setActor] = useState(initialActor);
   const [firstName, setFirstName] = useState(initialActor.first_name);
   const [lastName, setLastName] = useState(initialActor.last_name);
-  const [password, setPassword] = useState("");
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     text: string;
@@ -42,7 +40,6 @@ export function AccountSettingsForm({
       const result = await updateMeAction({
         first_name: firstName,
         last_name: lastName,
-        password: password.trim() ? password : "",
       });
 
       if (!result.ok) {
@@ -53,7 +50,6 @@ export function AccountSettingsForm({
       setActor(result.data);
       setFirstName(result.data.first_name);
       setLastName(result.data.last_name);
-      setPassword("");
       setFeedback({ type: "success", text: "Account settings saved." });
       router.refresh();
     });
@@ -73,30 +69,10 @@ export function AccountSettingsForm({
     <div className="space-y-6">
       <Card className="border-border bg-card shadow-xs">
         <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-base font-semibold">Profile</CardTitle>
-              <CardDescription>
-                Update your personal details and password.
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {actor.type === "owner" ? (
-                <Badge className="gap-1 bg-accent text-accent-foreground">
-                  <Crown aria-hidden="true" className="size-3" />
-                  Owner · account
-                </Badge>
-              ) : actor.roles.length > 0 ? (
-                actor.roles.map((role) => (
-                  <Badge key={role.id} variant="secondary">
-                    {role.name}
-                  </Badge>
-                ))
-              ) : (
-                <Badge variant="outline">Member</Badge>
-              )}
-            </div>
-          </div>
+          <CardTitle className="text-base font-semibold">Profile</CardTitle>
+          <CardDescription>
+            Update your personal details.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="space-y-4">
@@ -143,18 +119,6 @@ export function AccountSettingsForm({
                   onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="settings-password">New password (optional)</Label>
-              <Input
-                id="settings-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Leave blank to keep current password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
             </div>
 
             <div className="flex justify-end">

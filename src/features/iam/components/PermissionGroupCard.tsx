@@ -3,6 +3,8 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   actorHoldsPermission,
+  isIncludedInAdministrator,
+  PERMISSIONS,
   type PermissionGroupDefinition,
 } from "../permissions";
 import type { ActorDto } from "../schemas";
@@ -29,9 +31,12 @@ export function PermissionGroupCard({
       </h3>
       <div className="divide-y divide-border rounded-lg border border-border">
         {group.items.map((item) => {
-          const checked = permissions.includes(item.key);
+          const hasAdmin = permissions.includes(PERMISSIONS.IAM_ADMINISTRATOR);
+          const impliedByAdmin =
+            hasAdmin && isIncludedInAdministrator(item.key);
+          const checked = impliedByAdmin || permissions.includes(item.key);
           const held = actorHoldsPermission(actor, item.key);
-          const disabled = !editable || !held || isPending;
+          const disabled = !editable || !held || isPending || impliedByAdmin;
 
           return (
             <label

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AccessDeniedCard } from "@/features/iam/components/AccessDeniedCard";
 import { RolesWorkspace } from "@/features/iam/components/RolesWorkspace";
-import { getRoles, requireCurrentActor } from "@/features/iam/loaders";
+import { getMembers, getRoles, requireCurrentActor } from "@/features/iam/loaders";
 import { PERMISSIONS, hasPermission } from "@/features/iam/permissions";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +23,12 @@ export default async function RolesPage() {
     );
   }
 
-  const roles = await getRoles();
-  return <RolesWorkspace actor={actor} initialRoles={roles} />;
+  const [roles, members] = await Promise.all([getRoles(), getMembers()]);
+  return (
+    <RolesWorkspace
+      actor={actor}
+      initialRoles={roles}
+      initialMembers={members}
+    />
+  );
 }

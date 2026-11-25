@@ -127,7 +127,7 @@ describe("CustomersWorkspace", () => {
       scroll: false,
     });
 
-    await user.click(screen.getByRole("button", { name: "Clean" }));
+    await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(replaceMock).toHaveBeenCalledWith("/customers", { scroll: false });
   });
 
