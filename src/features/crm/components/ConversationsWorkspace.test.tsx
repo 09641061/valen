@@ -17,6 +17,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("../conversation-actions", () => ({
   sendConversationMessageAction: vi.fn(),
+  updateConversationAiAction: vi.fn(),
   updateConversationStatusAction: vi.fn(),
 }));
 
@@ -40,6 +41,7 @@ const openConversation: HydratedConversation = {
     customer_id: sampleCustomer.id,
     channel: "whatsapp",
     status: "open",
+    ai_paused: false,
     version: 3,
     last_message_at: "2026-01-02T12:00:00Z",
     last_message_preview: "Hello there!",
@@ -202,5 +204,41 @@ describe("ConversationsWorkspace", () => {
 
     await user.click(screen.getByRole("button", { name: "Closed" }));
     expect(pushMock).toHaveBeenCalledWith("/conversations?status=closed");
+  });
+
+  it("shows AI paused badge, handoff reason, and resumes AI on open paused conversation", async () => {
+    const user = userEvent.setup();
+    const paused: HydratedConversation = {
+      conversation: { ...openConversation.conversation, ai_paused: true, handoff_reason: "Customer requested a human" },
+      customer: sampleCustomer,
+    };
+    vi.mocked(conversationActions.updateConversationAiAction).mockResolvedValueOnce({
+      ok: true,
+      data: { ...paused.conversation, ai_paused: false, version: 4 },
+    });
+
+    render(
+      <ConversationsWorkspace
+        conversations={[paused]}
+        selectedConversationId={paused.conversation.id}
+        initialMessages={sampleMessages}
+        initialQuery=""
+        initialStatus="all"
+      />,
+    );
+
+    expect(screen.getAllByText("AI paused")).toHaveLength(2);
+    expect(screen.getByText("Handoff reason: Customer requested a human")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Resume AI" }));
+
+    await waitFor(() => {
+      expect(conversationActions.updateConversationAiAction).toHaveBeenCalledWith({
+        conversationId: paused.conversation.id,
+        version: 3,
+        aiPaused: false,
+      });
+    });
+    expect(refreshMock).toHaveBeenCalled();
   });
 });

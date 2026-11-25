@@ -58,6 +58,7 @@ const sampleOrganization = {
   currency_code: "USD",
   business_hours: validHours,
   ai_instructions: "Be concise.",
+  ai_enabled: false,
   whatsapp_phone_number: "",
   whatsapp_phone_number_id: "",
   whatsapp_enabled: false,
@@ -90,6 +91,7 @@ describe("organizations server actions", () => {
       updateAiInstructionsAction({
         version: 1,
         ai_instructions: "a".repeat(4001),
+        ai_enabled: false,
       }),
     ]);
 
@@ -128,9 +130,14 @@ describe("organizations server actions", () => {
       await updateAiInstructionsAction({
         version: 1,
         ai_instructions: "Be concise.",
+        ai_enabled: true,
       }),
     ).toEqual({ ok: true, data: sampleOrganization });
 
+    expect(dataAccess.patchOrganization).toHaveBeenCalledWith(1, {
+      ai_instructions: "Be concise.",
+      ai_enabled: true,
+    });
     expect(dataAccess.patchOrganization).toHaveBeenCalledTimes(3);
     expect(revalidatePath).toHaveBeenCalledTimes(3);
     expect(revalidatePath).toHaveBeenCalledWith("/organization");
@@ -145,7 +152,11 @@ describe("organizations server actions", () => {
       ),
     );
     expect(
-      await updateAiInstructionsAction({ version: 1, ai_instructions: "Hi" }),
+      await updateAiInstructionsAction({
+        version: 1,
+        ai_instructions: "Hi",
+        ai_enabled: false,
+      }),
     ).toEqual({
       ok: false,
       code: "STALE_VERSION",
@@ -157,7 +168,11 @@ describe("organizations server actions", () => {
       new Error("network down"),
     );
     expect(
-      await updateAiInstructionsAction({ version: 1, ai_instructions: "Hi" }),
+      await updateAiInstructionsAction({
+        version: 1,
+        ai_instructions: "Hi",
+        ai_enabled: false,
+      }),
     ).toEqual({
       ok: false,
       code: "UPSTREAM_ERROR",

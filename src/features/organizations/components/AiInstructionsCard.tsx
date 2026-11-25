@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { updateAiInstructionsAction } from "../actions";
 import { UpdateAiInstructionsSchema, type OrganizationDto } from "../schemas";
@@ -23,6 +24,7 @@ export function AiInstructionsCard({
   const [instructions, setInstructions] = useState(
     organization.ai_instructions,
   );
+  const [aiEnabled, setAiEnabled] = useState(organization.ai_enabled);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
@@ -32,6 +34,7 @@ export function AiInstructionsCard({
     const parsed = UpdateAiInstructionsSchema.safeParse({
       version: organization.version,
       ai_instructions: value,
+      ai_enabled: aiEnabled,
     });
     return parsed.success
       ? null
@@ -51,6 +54,7 @@ export function AiInstructionsCard({
       const result = await updateAiInstructionsAction({
         version: organization.version,
         ai_instructions: instructions,
+        ai_enabled: aiEnabled,
       });
       if (!result.ok) {
         if (result.code === "STALE_VERSION") {
@@ -62,6 +66,7 @@ export function AiInstructionsCard({
       }
       onUpdated(result.data);
       setInstructions(result.data.ai_instructions);
+      setAiEnabled(result.data.ai_enabled);
       setFieldError(null);
       setSavedMessage("Saved");
     });
@@ -76,31 +81,53 @@ export function AiInstructionsCard({
       savedMessage={savedMessage}
       onSubmit={handleSubmit}
       className="h-fit"
-      contentClassName="space-y-2"
+      contentClassName="space-y-4"
     >
-      <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="ai-instructions">Assistant instructions</Label>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {instructions.length} / {MAX_INSTRUCTIONS_LENGTH}
-        </span>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="ai-enabled">Auto-reply on WhatsApp</Label>
+          <Switch
+            id="ai-enabled"
+            checked={aiEnabled}
+            onCheckedChange={(checked) => {
+              setAiEnabled(checked);
+              setSavedMessage(null);
+            }}
+          />
+        </div>
+        {aiEnabled && !organization.whatsapp_enabled ? (
+          <p className="text-xs text-muted-foreground">
+            Connect and enable WhatsApp above to start sending automatic
+            replies.
+          </p>
+        ) : null}
       </div>
-      <Textarea
-        id="ai-instructions"
-        value={instructions}
-        aria-invalid={Boolean(fieldError)}
-        onChange={(e) => {
-          const val = e.target.value;
-          setInstructions(val);
-          setSavedMessage(null);
-          if (fieldError) setFieldError(validate(val));
-        }}
-        maxLength={MAX_INSTRUCTIONS_LENGTH}
-        className="h-48 resize-none overflow-y-auto"
-        placeholder="Describe how the assistant should greet customers, answer questions, and handle bookings..."
-      />
-      {fieldError ? (
-        <p className="text-xs text-destructive">{fieldError}</p>
-      ) : null}
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="ai-instructions">Assistant instructions</Label>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {instructions.length} / {MAX_INSTRUCTIONS_LENGTH}
+          </span>
+        </div>
+        <Textarea
+          id="ai-instructions"
+          value={instructions}
+          aria-invalid={Boolean(fieldError)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setInstructions(val);
+            setSavedMessage(null);
+            if (fieldError) setFieldError(validate(val));
+          }}
+          maxLength={MAX_INSTRUCTIONS_LENGTH}
+          className="h-48 resize-none overflow-y-auto"
+          placeholder="Describe how the assistant should greet customers, answer questions, and handle bookings..."
+        />
+        {fieldError ? (
+          <p className="text-xs text-destructive">{fieldError}</p>
+        ) : null}
+      </div>
     </OrganizationFormCard>
   );
 }

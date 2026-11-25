@@ -90,6 +90,7 @@ export const OrganizationSchema = z.object({
   currency_code: z.string().regex(/^[A-Z]{3}$/).default("USD"),
   business_hours: BusinessHoursSchema,
   ai_instructions: z.string(),
+  ai_enabled: z.boolean().default(false),
   whatsapp_phone_number: z.string().default(""),
   whatsapp_phone_number_id: z.string().default(""),
   whatsapp_enabled: z.boolean().default(false),
@@ -164,6 +165,7 @@ export const UpdateAiInstructionsSchema = z.object({
   ai_instructions: z
     .string()
     .max(4000, "Assistant instructions must not exceed 4000 characters"),
+  ai_enabled: z.boolean(),
 });
 
 export type UpdateAiInstructionsInput = z.infer<

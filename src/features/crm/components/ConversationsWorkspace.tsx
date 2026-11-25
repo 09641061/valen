@@ -1,16 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
-import { loadCustomerConversationsAction } from "../actions";
-import { updateConversationStatusAction } from "../conversation-actions";
-import type {
-  ConversationDto,
-  CustomerDto,
-  HydratedConversation,
-  MessageDto,
-} from "../schemas";
+import {
+  updateConversationAiAction,
+  updateConversationStatusAction,
+} from "../conversation-actions";
+import type { HydratedConversation, MessageDto } from "../schemas";
 import { useCrmEvents } from "../use-crm-events";
 import {
   ConversationList,
@@ -20,6 +17,7 @@ import { ConversationThreadHeader } from "./ConversationThreadHeader";
 import { CustomerProfileDialog } from "./CustomerProfileDialog";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
+import { useCustomerProfileState } from "./use-customer-profile-state";
 
 interface ConversationsWorkspaceProps {
   conversations: HydratedConversation[];
@@ -53,51 +51,6 @@ function findSelectedEntry(
   );
 }
 
-function useCustomerProfileState(selectedCustomer: CustomerDto | null) {
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [profileConversations, setProfileConversations] = useState<
-    ConversationDto[]
-  >([]);
-  const [profileLoadError, setProfileLoadError] = useState<string | null>(null);
-  const [isLoadingProfile, startProfileTransition] = useTransition();
-  const profileReqRef = useRef(0);
-
-  function handleOpenProfile() {
-    if (!selectedCustomer) return;
-    const customerId = selectedCustomer.id;
-    const reqId = ++profileReqRef.current;
-    setProfileOpen(true);
-    setProfileConversations([]);
-    setProfileLoadError(null);
-    startProfileTransition(async () => {
-      const result = await loadCustomerConversationsAction(customerId);
-      if (profileReqRef.current !== reqId) return;
-      if (!result.ok) {
-        setProfileLoadError(result.message);
-        setProfileConversations([]);
-        return;
-      }
-      setProfileConversations(result.data);
-    });
-  }
-
-  function handleProfileOpenChange(open: boolean) {
-    if (!open) {
-      profileReqRef.current += 1;
-    }
-    setProfileOpen(open);
-  }
-
-  return {
-    profileOpen,
-    profileConversations,
-    profileLoadError,
-    isLoadingProfile,
-    handleOpenProfile,
-    handleProfileOpenChange,
-  };
-}
-
 export function ConversationsWorkspace({
   conversations,
   selectedConversationId,
@@ -109,6 +62,7 @@ export function ConversationsWorkspace({
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isUpdatingStatus, startStatusTransition] = useTransition();
+  const [isUpdatingAi, startAiTransition] = useTransition();
 
   const handleCrmEvent = useCallback(() => {
     router.refresh();
@@ -141,6 +95,24 @@ export function ConversationsWorkspace({
         conversationId: selectedConversation.id,
         version: selectedConversation.version,
         status: nextStatus,
+      });
+      if (!result.ok) {
+        setStatusError(result.message);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleResumeAi() {
+    if (!selectedConversation || isUpdatingAi) return;
+    setStatusError(null);
+
+    startAiTransition(async () => {
+      const result = await updateConversationAiAction({
+        conversationId: selectedConversation.id,
+        version: selectedConversation.version,
+        aiPaused: false,
       });
       if (!result.ok) {
         setStatusError(result.message);
@@ -186,8 +158,10 @@ export function ConversationsWorkspace({
                 conversation={selectedConversation}
                 customer={selectedCustomer}
                 isUpdatingStatus={isUpdatingStatus}
+                isUpdatingAi={isUpdatingAi}
                 onOpenProfile={handleOpenProfile}
                 onToggleStatus={handleToggleStatus}
+                onResumeAi={handleResumeAi}
               />
 
               {statusError ? (
