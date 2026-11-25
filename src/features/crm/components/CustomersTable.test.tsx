@@ -9,7 +9,6 @@ const CUSTOMERS: CustomerDto[] = [
     id: "11111111-1111-4111-8111-111111111111",
     name: "Alice Smith",
     phone: "+14155550101",
-    version: 1,
     created_at: "2026-01-01T10:00:00Z",
     updated_at: "2026-01-01T10:00:00Z",
   },
@@ -66,7 +65,7 @@ describe("CustomersTable", () => {
     expect(input.parentElement?.querySelector("button")).toBeNull();
 
     const cleanButton = screen.getByRole("button", {
-      name: "Clean",
+      name: "Clear",
     }) as HTMLButtonElement;
     expect(cleanButton.disabled).toBe(true);
 
@@ -166,7 +165,7 @@ describe("CustomersTable", () => {
         {...makeProps({ searchQuery: "", isSearching: true, onSearchChange })}
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Clean" }));
+    await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(input.value).toBe("");
     expect(document.activeElement).toBe(input);
     expect(onSearchChange).toHaveBeenLastCalledWith("");

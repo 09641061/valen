@@ -56,7 +56,6 @@ const sampleCategory = {
   id: CAT_ID,
   name: "Hair",
   sort_order: 1,
-  version: 1,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
   services: [],
@@ -69,7 +68,6 @@ const sampleService = {
   duration_minutes: 30,
   price_minor_units: 2000,
   sort_order: 1,
-  version: 1,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -82,9 +80,9 @@ describe("catalog server actions", () => {
   it("rejects invalid inputs via Zod without calling data-access or revalidatePath", async () => {
     const results = await Promise.all([
       createCategoryAction({ name: "   " }),
-      updateCategoryAction({ id: "bad", version: 1, name: "Hair" }),
-      deleteCategoryAction({ id: CAT_ID, version: 0 }),
-      moveCategoryAction({ id: CAT_ID, version: 1, sort_order: 0 }),
+      updateCategoryAction({ id: "bad", name: "Hair" }),
+      deleteCategoryAction({ id: "bad" }),
+      moveCategoryAction({ id: CAT_ID, sort_order: 0 }),
       createServiceAction({
         category_id: CAT_ID,
         name: "Haircut",
@@ -93,15 +91,13 @@ describe("catalog server actions", () => {
       }),
       updateServiceAction({
         id: SVC_ID,
-        version: 1,
         name: "Haircut",
         duration_minutes: 30,
         price_minor_units: -1,
       }),
-      deleteServiceAction({ id: "bad", version: 1 }),
+      deleteServiceAction({ id: "bad" }),
       moveServiceAction({
         id: SVC_ID,
-        version: 1,
         category_id: "bad",
         sort_order: 1,
       }),
@@ -138,14 +134,14 @@ describe("catalog server actions", () => {
       data: sampleCategory,
     });
     expect(
-      await updateCategoryAction({ id: CAT_ID, version: 1, name: "Hair" }),
+      await updateCategoryAction({ id: CAT_ID, name: "Hair" }),
     ).toEqual({ ok: true, data: sampleCategory });
-    expect(await deleteCategoryAction({ id: CAT_ID, version: 1 })).toEqual({
+    expect(await deleteCategoryAction({ id: CAT_ID })).toEqual({
       ok: true,
       data: null,
     });
     expect(
-      await moveCategoryAction({ id: CAT_ID, version: 1, sort_order: 1 }),
+      await moveCategoryAction({ id: CAT_ID, sort_order: 1 }),
     ).toEqual({ ok: true, data: sampleCategory });
     expect(
       await createServiceAction({
@@ -158,20 +154,18 @@ describe("catalog server actions", () => {
     expect(
       await updateServiceAction({
         id: SVC_ID,
-        version: 1,
         name: "Haircut",
         duration_minutes: 30,
         price_minor_units: 2000,
       }),
     ).toEqual({ ok: true, data: sampleService });
-    expect(await deleteServiceAction({ id: SVC_ID, version: 1 })).toEqual({
+    expect(await deleteServiceAction({ id: SVC_ID })).toEqual({
       ok: true,
       data: null,
     });
     expect(
       await moveServiceAction({
         id: SVC_ID,
-        version: 1,
         category_id: CAT_ID,
         sort_order: 1,
       }),
@@ -181,20 +175,7 @@ describe("catalog server actions", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/catalog");
   });
 
-  it("maps STALE_VERSION and CONFLICT CatalogApiError codes cleanly", async () => {
-    vi.mocked(dataAccess.updateCategory).mockRejectedValueOnce(
-      new dataAccess.CatalogApiError("STALE_VERSION", "Version mismatch", 412),
-    );
-    expect(
-      await updateCategoryAction({ id: CAT_ID, version: 1, name: "Hair" }),
-    ).toEqual({
-      ok: false,
-      code: "STALE_VERSION",
-      message: "Version mismatch",
-      fieldErrors: undefined,
-    });
-    expect(revalidatePath).not.toHaveBeenCalled();
-
+  it("maps CONFLICT CatalogApiError codes cleanly", async () => {
     vi.mocked(dataAccess.insertCategory).mockRejectedValueOnce(
       new dataAccess.CatalogApiError("CONFLICT", "Duplicate name", 409, {
         name: ["A category with that name already exists"],
@@ -206,12 +187,13 @@ describe("catalog server actions", () => {
       message: "Duplicate name",
       fieldErrors: { name: ["A category with that name already exists"] },
     });
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("maps unexpected non-CatalogApiError errors to UPSTREAM_ERROR", async () => {
     vi.mocked(dataAccess.deleteService).mockRejectedValueOnce(new Error("boom"));
 
-    expect(await deleteServiceAction({ id: SVC_ID, version: 1 })).toEqual({
+    expect(await deleteServiceAction({ id: SVC_ID })).toEqual({
       ok: false,
       code: "UPSTREAM_ERROR",
       message: "An unexpected error occurred while processing the request",

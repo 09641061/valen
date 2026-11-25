@@ -99,8 +99,8 @@ export async function updateCustomerAction(
   input: UpdateCustomerInput,
 ): Promise<CrmActionResult<CustomerDto>> {
   try {
-    const { id, version, name, phone } = UpdateCustomerSchema.parse(input);
-    const updated = await updateCustomer(id, version, { name, phone });
+    const { id, name, phone } = UpdateCustomerSchema.parse(input);
+    const updated = await updateCustomer(id, { name, phone });
     revalidatePath("/customers");
     return { ok: true, data: updated };
   } catch (error) {

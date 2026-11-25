@@ -27,7 +27,6 @@ export const CustomerSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   phone: z.string(),
-  version: z.number().int().min(1),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -95,7 +94,6 @@ export const CreateCustomerSchema = z.object({
 
 export const UpdateCustomerSchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
   name: CustomerNameSchema,
   phone: PhoneSchema,
 });
@@ -116,7 +114,6 @@ export const SendMessageSchema = z.object({
 
 export const UpdateConversationStatusSchema = z.object({
   conversationId: z.string().uuid(),
-  version: z.number().int().min(1),
   status: ConversationStatusSchema,
 });
 

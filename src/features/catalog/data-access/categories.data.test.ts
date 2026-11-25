@@ -37,7 +37,6 @@ const sampleService = {
   duration_minutes: 30,
   price_minor_units: 2000,
   sort_order: 1,
-  version: 2,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -46,7 +45,6 @@ const sampleCategory = {
   id: CAT_ID,
   name: "Hair",
   sort_order: 1,
-  version: 3,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
   services: [sampleService],
@@ -107,53 +105,44 @@ describe("catalog categories data-access", () => {
     expect(created.id).toBe(CAT_ID);
   });
 
-  it("updateCategory sends PUT /v1/catalog/categories/:id with If-Match header", async () => {
-    let ifMatch: string | null = null;
+  it("updateCategory sends PUT /v1/catalog/categories/:id", async () => {
     let body: unknown = null;
     server.use(
       http.put(`${BASE_URL}/v1/catalog/categories/${CAT_ID}`, async ({ request }) => {
-        ifMatch = request.headers.get("if-match");
         body = await request.json();
-        return HttpResponse.json({ ...sampleCategory, version: 4 });
+        return HttpResponse.json({ ...sampleCategory, name: "VIP Hair" });
       }),
     );
 
-    const updated = await updateCategory({ id: CAT_ID, version: 3, name: "VIP Hair" });
+    const updated = await updateCategory({ id: CAT_ID, name: "VIP Hair" });
 
-    expect(ifMatch).toBe('"v3"');
     expect(body).toEqual({ name: "VIP Hair" });
-    expect(updated.version).toBe(4);
+    expect(updated.name).toBe("VIP Hair");
   });
 
-  it("deleteCategory sends DELETE /v1/catalog/categories/:id with If-Match header", async () => {
-    let ifMatch: string | null = null;
+  it("deleteCategory sends DELETE /v1/catalog/categories/:id", async () => {
     server.use(
-      http.delete(`${BASE_URL}/v1/catalog/categories/${CAT_ID}`, ({ request }) => {
-        ifMatch = request.headers.get("if-match");
+      http.delete(`${BASE_URL}/v1/catalog/categories/${CAT_ID}`, () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
 
-    await deleteCategory({ id: CAT_ID, version: 3 });
-    expect(ifMatch).toBe('"v3"');
+    await expect(deleteCategory({ id: CAT_ID })).resolves.toBeUndefined();
   });
 
-  it("moveCategory sends PUT /v1/catalog/categories/:id/placement with If-Match header", async () => {
-    let ifMatch: string | null = null;
+  it("moveCategory sends PUT /v1/catalog/categories/:id/placement", async () => {
     let body: unknown = null;
     server.use(
       http.put(
         `${BASE_URL}/v1/catalog/categories/${CAT_ID}/placement`,
         async ({ request }) => {
-          ifMatch = request.headers.get("if-match");
           body = await request.json();
           return HttpResponse.json({ ...sampleCategory, sort_order: 2 });
         },
       ),
     );
 
-    const moved = await moveCategory({ id: CAT_ID, version: 3, sort_order: 2 });
-    expect(ifMatch).toBe('"v3"');
+    const moved = await moveCategory({ id: CAT_ID, sort_order: 2 });
     expect(body).toEqual({ sort_order: 2 });
     expect(moved.sort_order).toBe(2);
   });
@@ -161,8 +150,6 @@ describe("catalog categories data-access", () => {
   it.each([
     { status: 400, expectedCode: "VALIDATION_ERROR" },
     { status: 422, expectedCode: "VALIDATION_ERROR" },
-    { status: 412, expectedCode: "STALE_VERSION" },
-    { status: 428, expectedCode: "STALE_VERSION" },
     { status: 404, expectedCode: "NOT_FOUND" },
     { status: 409, expectedCode: "CONFLICT" },
     { status: 500, expectedCode: "UPSTREAM_ERROR" },

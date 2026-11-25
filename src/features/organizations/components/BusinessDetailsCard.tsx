@@ -19,13 +19,11 @@ import { OrganizationFormCard } from "./OrganizationFormCard";
 interface BusinessDetailsCardProps {
   organization: OrganizationDto;
   onUpdated: (org: OrganizationDto) => void;
-  onStaleVersion: (message: string) => void;
 }
 
 export function BusinessDetailsCard({
   organization,
   onUpdated,
-  onStaleVersion,
 }: BusinessDetailsCardProps) {
   const [name, setName] = useState(organization.name);
   const [contactEmail, setContactEmail] = useState(organization.contact_email);
@@ -40,8 +38,7 @@ export function BusinessDetailsCard({
   const [isPending, startTransition] = useTransition();
 
   const shouldDefaultToLocal =
-    organization.version === 1 &&
-    (!organization.timezone || organization.timezone === "UTC");
+    !organization.timezone || organization.timezone === "UTC";
   const timezone =
     selectedTimezone ??
     (shouldDefaultToLocal && localTimezone
@@ -50,7 +47,6 @@ export function BusinessDetailsCard({
 
   function currentDraft() {
     return {
-      version: organization.version,
       name,
       contact_email: contactEmail,
       timezone,
@@ -80,14 +76,10 @@ export function BusinessDetailsCard({
     startTransition(async () => {
       const result = await updateBusinessDetailsAction(currentDraft());
       if (!result.ok) {
-        if (result.code === "STALE_VERSION") {
-          onStaleVersion(result.message);
-        } else {
-          if (result.fieldErrors) {
-            setFieldErrors(result.fieldErrors as BusinessDetailsFieldErrors);
-          }
-          setErrorMessage(result.message);
+        if (result.fieldErrors) {
+          setFieldErrors(result.fieldErrors as BusinessDetailsFieldErrors);
         }
+        setErrorMessage(result.message);
         return;
       }
       onUpdated(result.data);

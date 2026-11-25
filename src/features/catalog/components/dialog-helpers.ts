@@ -1,5 +1,4 @@
 import type { z } from "zod";
-import type { CatalogActionResult } from "../actions";
 
 export function extractZodFieldErrors(error: z.ZodError): Record<string, string> {
   const nextErrors: Record<string, string> = {};
@@ -23,17 +22,4 @@ export function mapActionFieldErrors(
     }
   }
   return mapped;
-}
-
-export function handleDialogActionFailure<T>(
-  result: Extract<CatalogActionResult<T>, { ok: false }>,
-  onOpenChange: (open: boolean) => void,
-  onStaleVersion: (message: string) => void,
-): boolean {
-  if (result.code === "STALE_VERSION") {
-    onOpenChange(false);
-    onStaleVersion(result.message);
-    return true;
-  }
-  return false;
 }

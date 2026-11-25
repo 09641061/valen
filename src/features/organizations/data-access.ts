@@ -3,7 +3,6 @@ import "server-only";
 import {
   CynthiaApiError,
   cynthiaFetch,
-  formatIfMatchHeader,
   type ApiErrorCode,
 } from "@/lib/cynthia-client";
 import {
@@ -34,12 +33,10 @@ export type OrganizationPatchPayload = {
 };
 
 export async function patchOrganization(
-  version: number,
   payload: OrganizationPatchPayload,
 ): Promise<OrganizationDto> {
   const response = await cynthiaFetch("/v1/organization", {
     method: "PATCH",
-    headers: { "If-Match": formatIfMatchHeader(version) },
     body: JSON.stringify(payload),
   });
   return OrganizationSchema.parse(await response.json());

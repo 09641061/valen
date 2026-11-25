@@ -1,9 +1,9 @@
 "use client";
 
-import { MessageCircle, Search } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { formatTimestamp } from "../format";
 import type { HydratedConversation } from "../schemas";
 
@@ -49,14 +49,11 @@ export function ConversationList({
           }}
           className="relative"
         >
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
+          <SearchInput
             value={searchQuery}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={onSearchChange}
             placeholder="Search customer or message"
-            aria-label="Search customer or message"
-            className="pl-9"
+            ariaLabel="Search customer or message"
           />
         </form>
 

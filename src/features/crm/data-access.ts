@@ -3,7 +3,6 @@ import "server-only";
 import {
   CynthiaApiError,
   cynthiaFetch,
-  formatIfMatchHeader,
   type ApiErrorCode,
 } from "@/lib/cynthia-client";
 import {
@@ -87,16 +86,12 @@ export async function createCustomer(input: {
 
 export async function updateCustomer(
   id: string,
-  version: number,
   input: { name: string; phone: string },
 ): Promise<CustomerDto> {
   const res = await cynthiaFetch(
     `/v1/customers/${encodeURIComponent(id)}`,
     {
       method: "PATCH",
-      headers: {
-        "If-Match": formatIfMatchHeader(version),
-      },
       body: JSON.stringify(input),
     },
     ERROR_NAME,
@@ -160,16 +155,12 @@ export async function sendConversationMessage(
 
 export async function updateConversationStatus(
   conversationId: string,
-  version: number,
   status: "open" | "closed",
 ): Promise<ConversationDto> {
   const res = await cynthiaFetch(
     `/v1/conversations/${encodeURIComponent(conversationId)}/status`,
     {
       method: "PATCH",
-      headers: {
-        "If-Match": formatIfMatchHeader(version),
-      },
       body: JSON.stringify({ status }),
     },
     ERROR_NAME,
@@ -187,7 +178,7 @@ export async function updateConversationAi(
     {
       method: "PATCH",
       headers: {
-        "If-Match": formatIfMatchHeader(version),
+        "If-Match": `"v${version}"`,
       },
       body: JSON.stringify({ ai_paused: aiPaused }),
     },

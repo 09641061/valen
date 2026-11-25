@@ -21,7 +21,6 @@ const CUSTOMER = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Jane Doe",
   phone: "+573001234567",
-  version: 1,
   created_at: "2026-01-01T10:00:00Z",
   updated_at: "2026-01-01T10:00:00Z",
 };
@@ -80,15 +79,11 @@ describe("crm data-access", () => {
     });
   });
 
-  it("sends If-Match header on updateCustomer and handles deleteCustomer", async () => {
-    let receivedIfMatch: string | null = null;
+  it("patches updateCustomer and handles deleteCustomer", async () => {
     server.use(
       http.patch(
         `http://cynthia.test/v1/customers/${CUSTOMER.id}`,
-        ({ request }) => {
-          receivedIfMatch = request.headers.get("if-match");
-          return HttpResponse.json({ ...CUSTOMER, version: 2 });
-        },
+        () => HttpResponse.json({ ...CUSTOMER, name: "Jane Updated" }),
       ),
       http.delete(
         `http://cynthia.test/v1/customers/${CUSTOMER.id}`,
@@ -96,12 +91,11 @@ describe("crm data-access", () => {
       ),
     );
 
-    const updated = await updateCustomer(CUSTOMER.id, 1, {
+    const updated = await updateCustomer(CUSTOMER.id, {
       name: "Jane Updated",
       phone: CUSTOMER.phone,
     });
-    expect(receivedIfMatch).toBe('"v1"');
-    expect(updated.version).toBe(2);
+    expect(updated.name).toBe("Jane Updated");
 
     await expect(deleteCustomer(CUSTOMER.id)).resolves.toBeUndefined();
   });

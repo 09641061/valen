@@ -44,7 +44,6 @@ const APPOINTMENT = {
   status: "confirmed" as const,
   channel: "manual",
   notes: "",
-  version: 1,
   created_at: "2026-11-24T10:00:00Z",
   updated_at: "2026-11-24T10:00:00Z",
 };
@@ -80,7 +79,7 @@ describe("calendar actions", () => {
     expect(revalidatePathMock).toHaveBeenCalledWith("/calendar");
   });
 
-  it("maps 409 conflict and 412 stale version errors", async () => {
+  it("maps 409 conflict errors", async () => {
     vi.mocked(createAppointment).mockRejectedValueOnce(
       new CalendarApiError("CONFLICT", "Overlapping appointment", 409),
     );
@@ -97,24 +96,25 @@ describe("calendar actions", () => {
       message: "Overlapping appointment",
       fieldErrors: undefined,
     });
-
-    vi.mocked(updateAppointment).mockRejectedValueOnce(
-      new CalendarApiError("STALE_VERSION", "Version mismatch", 412),
-    );
-    const stale = await updateAppointmentAction({
-      id: ID,
-      version: 1,
-      status: "completed",
-    });
-    expect(stale.ok).toBe(false);
-    if (!stale.ok) expect(stale.code).toBe("STALE_VERSION");
   });
 
-  it("deletes appointment with version and revalidates /calendar", async () => {
+  it("updates appointment and revalidates /calendar", async () => {
+    const updated = { ...APPOINTMENT, status: "completed" as const };
+    vi.mocked(updateAppointment).mockResolvedValueOnce(updated);
+    const result = await updateAppointmentAction({
+      id: ID,
+      status: "completed",
+    });
+    expect(result).toEqual({ ok: true, data: updated });
+    expect(updateAppointment).toHaveBeenCalledWith(ID, { status: "completed" });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/calendar");
+  });
+
+  it("deletes appointment and revalidates /calendar", async () => {
     vi.mocked(deleteAppointment).mockResolvedValueOnce(undefined);
-    const result = await deleteAppointmentAction({ id: ID, version: 1 });
+    const result = await deleteAppointmentAction({ id: ID });
     expect(result).toEqual({ ok: true, data: null });
-    expect(deleteAppointment).toHaveBeenCalledWith(ID, 1);
+    expect(deleteAppointment).toHaveBeenCalledWith(ID);
     expect(revalidatePathMock).toHaveBeenCalledWith("/calendar");
   });
 });

@@ -61,8 +61,8 @@ export async function updateBusinessDetailsAction(
   input: UpdateBusinessDetailsInput,
 ): Promise<OrganizationActionResult<OrganizationDto>> {
   try {
-    const { version, ...payload } = UpdateBusinessDetailsSchema.parse(input);
-    const updated = await patchOrganization(version, payload);
+    const payload = UpdateBusinessDetailsSchema.parse(input);
+    const updated = await patchOrganization(payload);
     revalidatePath("/organization");
     return { ok: true, data: updated };
   } catch (error) {
@@ -74,8 +74,8 @@ export async function updateBusinessHoursAction(
   input: UpdateBusinessHoursInput,
 ): Promise<OrganizationActionResult<OrganizationDto>> {
   try {
-    const { version, business_hours } = UpdateBusinessHoursSchema.parse(input);
-    const updated = await patchOrganization(version, { business_hours });
+    const { business_hours } = UpdateBusinessHoursSchema.parse(input);
+    const updated = await patchOrganization({ business_hours });
     revalidatePath("/organization");
     return { ok: true, data: updated };
   } catch (error) {
@@ -87,9 +87,9 @@ export async function updateAiInstructionsAction(
   input: UpdateAiInstructionsInput,
 ): Promise<OrganizationActionResult<OrganizationDto>> {
   try {
-    const { version, ai_instructions, ai_enabled } =
+    const { ai_instructions, ai_enabled } =
       UpdateAiInstructionsSchema.parse(input);
-    const updated = await patchOrganization(version, {
+    const updated = await patchOrganization({
       ai_instructions,
       ai_enabled,
     });
@@ -104,8 +104,8 @@ export async function updateWhatsAppConfigAction(
   input: UpdateWhatsAppConfigInput,
 ): Promise<OrganizationActionResult<OrganizationDto>> {
   try {
-    const { version, ...payload } = UpdateWhatsAppConfigSchema.parse(input);
-    const updated = await patchOrganization(version, payload);
+    const payload = UpdateWhatsAppConfigSchema.parse(input);
+    const updated = await patchOrganization(payload);
     revalidatePath("/organization");
     return { ok: true, data: updated };
   } catch (error) {

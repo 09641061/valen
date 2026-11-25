@@ -11,7 +11,6 @@ import { OrganizationFormCard } from "./OrganizationFormCard";
 interface AiInstructionsCardProps {
   organization: OrganizationDto;
   onUpdated: (org: OrganizationDto) => void;
-  onStaleVersion: (message: string) => void;
 }
 
 const MAX_INSTRUCTIONS_LENGTH = 4000;
@@ -19,7 +18,6 @@ const MAX_INSTRUCTIONS_LENGTH = 4000;
 export function AiInstructionsCard({
   organization,
   onUpdated,
-  onStaleVersion,
 }: AiInstructionsCardProps) {
   const [instructions, setInstructions] = useState(
     organization.ai_instructions,
@@ -32,7 +30,6 @@ export function AiInstructionsCard({
 
   function validate(value: string): string | null {
     const parsed = UpdateAiInstructionsSchema.safeParse({
-      version: organization.version,
       ai_instructions: value,
       ai_enabled: aiEnabled,
     });
@@ -52,16 +49,11 @@ export function AiInstructionsCard({
 
     startTransition(async () => {
       const result = await updateAiInstructionsAction({
-        version: organization.version,
         ai_instructions: instructions,
         ai_enabled: aiEnabled,
       });
       if (!result.ok) {
-        if (result.code === "STALE_VERSION") {
-          onStaleVersion(result.message);
-        } else {
-          setErrorMessage(result.message);
-        }
+        setErrorMessage(result.message);
         return;
       }
       onUpdated(result.data);

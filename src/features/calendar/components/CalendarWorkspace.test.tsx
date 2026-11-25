@@ -47,7 +47,6 @@ const APPOINTMENT: AppointmentDto = {
   status: "confirmed",
   channel: "whatsapp",
   notes: "Prefers quiet chair",
-  version: 1,
   created_at: "2026-11-24T08:00:00Z",
   updated_at: "2026-11-24T08:00:00Z",
 };
@@ -108,7 +107,7 @@ describe("CalendarWorkspace", () => {
     const user = userEvent.setup();
     updateAppointmentActionMock.mockResolvedValueOnce({
       ok: true,
-      data: { ...APPOINTMENT, status: "completed", version: 2 },
+      data: { ...APPOINTMENT, status: "completed" },
     });
     deleteAppointmentActionMock.mockResolvedValueOnce({ ok: true, data: null });
 
@@ -126,7 +125,6 @@ describe("CalendarWorkspace", () => {
     await waitFor(() => {
       expect(updateAppointmentActionMock).toHaveBeenCalledWith({
         id: APPOINTMENT.id,
-        version: 1,
         status: "completed",
       });
     });
@@ -141,7 +139,6 @@ describe("CalendarWorkspace", () => {
     await waitFor(() => {
       expect(deleteAppointmentActionMock).toHaveBeenCalledWith({
         id: APPOINTMENT.id,
-        version: 2,
       });
     });
   });

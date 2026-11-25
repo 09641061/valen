@@ -146,7 +146,7 @@ export function CustomersWorkspace({
         key={
           formOpen
             ? editingCustomer
-              ? `${editingCustomer.id}-${editingCustomer.version}`
+              ? editingCustomer.id
               : "new"
             : "closed"
         }

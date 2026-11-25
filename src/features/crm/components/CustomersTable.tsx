@@ -1,9 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import type { CustomerDto } from "../schemas";
 import { CustomersTableRow } from "./CustomersTableRow";
 
@@ -149,18 +148,14 @@ export function CustomersTable({
         onSubmit={handleSubmit}
         className="flex items-center gap-2 border-b p-3"
       >
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            ref={searchInputRef}
-            type="text"
-            value={draftQuery}
-            onChange={(event) => handleSearchInputChange(event.target.value)}
-            placeholder="Search by name or phone"
-            aria-label="Search by name or phone"
-            className="pl-9"
-          />
-        </div>
+        <SearchInput
+          inputRef={searchInputRef}
+          value={draftQuery}
+          onChange={handleSearchInputChange}
+          placeholder="Search by name or phone"
+          ariaLabel="Search by name or phone"
+          className="flex-1"
+        />
         <Button
           type="button"
           variant="secondary"
@@ -168,7 +163,7 @@ export function CustomersTable({
           disabled={!canClean}
           onClick={handleClean}
         >
-          Clean
+          Clear
         </Button>
       </form>
 

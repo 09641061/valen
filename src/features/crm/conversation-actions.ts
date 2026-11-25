@@ -75,13 +75,9 @@ export async function updateConversationStatusAction(
   input: UpdateConversationStatusInput,
 ): Promise<CrmActionResult<ConversationDto>> {
   try {
-    const { conversationId, version, status } =
+    const { conversationId, status } =
       UpdateConversationStatusSchema.parse(input);
-    const updated = await updateConversationStatus(
-      conversationId,
-      version,
-      status,
-    );
+    const updated = await updateConversationStatus(conversationId, status);
     revalidatePath("/conversations");
     revalidatePath("/customers");
     return { ok: true, data: updated };

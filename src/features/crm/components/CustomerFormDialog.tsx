@@ -50,7 +50,6 @@ function submitCustomerForm(
   if (customer) {
     return updateCustomerAction({
       id: customer.id,
-      version: customer.version,
       name,
       phone,
     });

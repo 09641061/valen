@@ -62,7 +62,6 @@ const sampleOrganization = {
   whatsapp_phone_number: "",
   whatsapp_phone_number_id: "",
   whatsapp_enabled: false,
-  version: 2,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -75,21 +74,18 @@ describe("organizations server actions", () => {
   it("rejects invalid inputs via Zod without calling patchOrganization or revalidatePath", async () => {
     const results = await Promise.all([
       updateBusinessDetailsAction({
-        version: 1,
         name: "   ",
         contact_email: "bad-email",
         timezone: "UTC",
         currency_code: "US",
       }),
       updateBusinessHoursAction({
-        version: 1,
         business_hours: {
           ...validHours,
           monday: { is_open: true, open_time: "18:00", close_time: "09:00" },
         },
       }),
       updateAiInstructionsAction({
-        version: 1,
         ai_instructions: "a".repeat(4001),
         ai_enabled: false,
       }),
@@ -111,7 +107,6 @@ describe("organizations server actions", () => {
 
     expect(
       await updateBusinessDetailsAction({
-        version: 1,
         name: "  Takodu  ",
         contact_email: "hello@takodu.com",
         timezone: "UTC",
@@ -121,20 +116,18 @@ describe("organizations server actions", () => {
 
     expect(
       await updateBusinessHoursAction({
-        version: 1,
         business_hours: validHours,
       }),
     ).toEqual({ ok: true, data: sampleOrganization });
 
     expect(
       await updateAiInstructionsAction({
-        version: 1,
         ai_instructions: "Be concise.",
         ai_enabled: true,
       }),
     ).toEqual({ ok: true, data: sampleOrganization });
 
-    expect(dataAccess.patchOrganization).toHaveBeenCalledWith(1, {
+    expect(dataAccess.patchOrganization).toHaveBeenCalledWith({
       ai_instructions: "Be concise.",
       ai_enabled: true,
     });
@@ -145,22 +138,17 @@ describe("organizations server actions", () => {
 
   it("maps OrganizationApiError and unexpected errors without revalidating", async () => {
     vi.mocked(dataAccess.patchOrganization).mockRejectedValueOnce(
-      new dataAccess.OrganizationApiError(
-        "STALE_VERSION",
-        "Version conflict",
-        412,
-      ),
+      new dataAccess.OrganizationApiError("CONFLICT", "Conflict error", 409),
     );
     expect(
       await updateAiInstructionsAction({
-        version: 1,
         ai_instructions: "Hi",
         ai_enabled: false,
       }),
     ).toEqual({
       ok: false,
-      code: "STALE_VERSION",
-      message: "Version conflict",
+      code: "CONFLICT",
+      message: "Conflict error",
       fieldErrors: undefined,
     });
 
@@ -169,7 +157,6 @@ describe("organizations server actions", () => {
     );
     expect(
       await updateAiInstructionsAction({
-        version: 1,
         ai_instructions: "Hi",
         ai_enabled: false,
       }),
@@ -184,7 +171,6 @@ describe("organizations server actions", () => {
 
   it("validates and executes updateWhatsAppConfigAction", async () => {
     const invalid = await updateWhatsAppConfigAction({
-      version: 1,
       whatsapp_enabled: true,
       whatsapp_phone_number: "",
       whatsapp_phone_number_id: "abc",
@@ -206,13 +192,12 @@ describe("organizations server actions", () => {
     vi.mocked(dataAccess.patchOrganization).mockResolvedValueOnce(updatedOrg);
 
     const res = await updateWhatsAppConfigAction({
-      version: 1,
       whatsapp_enabled: true,
       whatsapp_phone_number: "+51 994-356-103",
       whatsapp_phone_number_id: "106540352242922",
     });
     expect(res).toEqual({ ok: true, data: updatedOrg });
-    expect(dataAccess.patchOrganization).toHaveBeenCalledWith(1, {
+    expect(dataAccess.patchOrganization).toHaveBeenCalledWith({
       whatsapp_enabled: true,
       whatsapp_phone_number: "+51994356103",
       whatsapp_phone_number_id: "106540352242922",

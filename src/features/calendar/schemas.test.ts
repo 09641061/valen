@@ -29,7 +29,6 @@ describe("calendar schemas", () => {
       starts_at: "2026-11-24T15:30:00.000Z",
       ends_at: "2026-11-24T16:15:00.000Z",
       status: "confirmed",
-      version: 2,
     });
     expect(parsed.channel).toBe("manual");
     expect(parsed.notes).toBe("");
@@ -45,7 +44,6 @@ describe("calendar schemas", () => {
       starts_at: "2026-11-24T15:30:00.000Z",
       ends_at: "2026-11-24T16:15:00.000Z",
       status: "archived",
-      version: 1,
     });
     expect(result.success).toBe(false);
   });
@@ -77,14 +75,12 @@ describe("calendar schemas", () => {
   it("validates UpdateAppointmentSchema and DeleteAppointmentSchema", () => {
     const upd = UpdateAppointmentSchema.parse({
       id: VALID_UUID,
-      version: 3,
       status: "completed",
     });
     expect(upd.status).toBe("completed");
 
     const del = DeleteAppointmentSchema.safeParse({
-      id: VALID_UUID,
-      version: 0,
+      id: "not-a-uuid",
     });
     expect(del.success).toBe(false);
   });

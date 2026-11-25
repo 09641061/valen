@@ -117,46 +117,43 @@ describe("conversation actions", () => {
   });
 
   describe("updateConversationStatusAction", () => {
-    it("forwards version for If-Match and revalidates paths on success", async () => {
+    it("updates status and revalidates paths on success", async () => {
       vi.mocked(updateConversationStatus).mockResolvedValueOnce(
         SAMPLE_CONVERSATION,
       );
 
       const result = await updateConversationStatusAction({
         conversationId: CONVERSATION_ID,
-        version: 3,
         status: "closed",
       });
 
       expect(result).toEqual({ ok: true, data: SAMPLE_CONVERSATION });
       expect(updateConversationStatus).toHaveBeenCalledWith(
         CONVERSATION_ID,
-        3,
         "closed",
       );
       expect(revalidatePathMock).toHaveBeenCalledWith("/conversations");
       expect(revalidatePathMock).toHaveBeenCalledWith("/customers");
     });
 
-    it("maps STALE_VERSION (412 If-Match) error to typed result", async () => {
+    it("maps CONFLICT error to typed result", async () => {
       vi.mocked(updateConversationStatus).mockRejectedValueOnce(
         new CrmApiError(
-          "STALE_VERSION",
-          "Conversation was updated by another user.",
-          412,
+          "CONFLICT",
+          "Conversation status conflict.",
+          409,
         ),
       );
 
       const result = await updateConversationStatusAction({
         conversationId: CONVERSATION_ID,
-        version: 3,
         status: "closed",
       });
 
       expect(result).toEqual({
         ok: false,
-        code: "STALE_VERSION",
-        message: "Conversation was updated by another user.",
+        code: "CONFLICT",
+        message: "Conversation status conflict.",
         fieldErrors: undefined,
       });
     });

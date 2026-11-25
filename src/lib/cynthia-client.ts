@@ -1,12 +1,20 @@
 import "server-only";
 
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+  attemptTokenRefresh,
+  tryGetCookieStore,
+} from "@/lib/auth-cookies";
 import { getServerEnv } from "@/lib/env";
 
 export type ApiErrorCode =
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
   | "VALIDATION_ERROR"
-  | "STALE_VERSION"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "STALE_VERSION"
   | "UPSTREAM_ERROR";
 
 export interface ProblemField {
@@ -50,10 +58,12 @@ export class CynthiaApiError extends Error {
 }
 
 function mapStatusToCode(status: number): ApiErrorCode {
+  if (status === 401) return "UNAUTHORIZED";
+  if (status === 403) return "FORBIDDEN";
   if (status === 400 || status === 422) return "VALIDATION_ERROR";
-  if (status === 412 || status === 428) return "STALE_VERSION";
   if (status === 404) return "NOT_FOUND";
   if (status === 409) return "CONFLICT";
+  if (status === 412) return "STALE_VERSION";
   return "UPSTREAM_ERROR";
 }
 
@@ -97,10 +107,6 @@ function normalizeFieldErrors(
   return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
-export function formatIfMatchHeader(version: number): string {
-  return `"v${version}"`;
-}
-
 async function parseErrorResponse(
   response: Response,
   errorName = "CynthiaApiError",
@@ -142,14 +148,15 @@ async function parseErrorResponse(
   return err;
 }
 
-export async function cynthiaFetch(
-  path: string,
-  init: RequestInit = {},
-  errorName = "CynthiaApiError",
-): Promise<Response> {
-  const { CYNTHIA_API_URL } = getServerEnv();
-  const url = new URL(path, CYNTHIA_API_URL).toString();
+export interface CynthiaFetchOptions {
+  skipAuth?: boolean;
+  allowRefresh?: boolean;
+}
 
+function buildRequestHeaders(
+  init: RequestInit,
+  accessToken?: string,
+): Headers {
   const headers = new Headers(init.headers);
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json, application/problem+json");
@@ -157,20 +164,70 @@ export async function cynthiaFetch(
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+  return headers;
+}
+
+async function fetchWithRefresh(
+  url: string,
+  baseUrl: string,
+  init: RequestInit,
+  headers: Headers,
+  refreshToken?: string,
+  allowRefresh = false,
+): Promise<Response> {
+  const response = await fetch(url, { ...init, headers, cache: "no-store" });
+  if (response.status !== 401 || !allowRefresh || !refreshToken) {
+    return response;
+  }
+  const refreshed = await attemptTokenRefresh(baseUrl, refreshToken);
+  if (!refreshed) {
+    return response;
+  }
+  headers.set("Authorization", `Bearer ${refreshed.access_token}`);
+  return fetch(url, { ...init, headers, cache: "no-store" });
+}
+
+async function getAuthTokens(skipAuth?: boolean) {
+  if (skipAuth) return { accessToken: undefined, refreshToken: undefined };
+  const store = await tryGetCookieStore();
+  return {
+    accessToken: store?.get(ACCESS_TOKEN_COOKIE)?.value,
+    refreshToken: store?.get(REFRESH_TOKEN_COOKIE)?.value,
+  };
+}
+
+export async function cynthiaFetch(
+  path: string,
+  init: RequestInit = {},
+  errorName = "CynthiaApiError",
+  options: CynthiaFetchOptions = {},
+): Promise<Response> {
+  const { CYNTHIA_API_URL } = getServerEnv();
+  const url = new URL(path, CYNTHIA_API_URL).toString();
+  const { accessToken, refreshToken } = await getAuthTokens(options.skipAuth);
+  const headers = buildRequestHeaders(init, accessToken);
 
   let response: Response;
   try {
-    response = await fetch(url, {
-      ...init,
+    response = await fetchWithRefresh(
+      url,
+      CYNTHIA_API_URL,
+      init,
       headers,
-      cache: "no-store",
-    });
+      refreshToken,
+      options.allowRefresh,
+    );
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? `Could not connect to backend service: ${error.message}`
-        : "Could not connect to backend service";
-    const err = new CynthiaApiError("UPSTREAM_ERROR", message, 503);
+    const detail =
+      error instanceof Error ? `: ${error.message}` : "";
+    const err = new CynthiaApiError(
+      "UPSTREAM_ERROR",
+      `Could not connect to backend service${detail}`,
+      503,
+    );
     err.name = errorName;
     throw err;
   }

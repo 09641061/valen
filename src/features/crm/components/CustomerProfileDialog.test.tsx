@@ -16,7 +16,6 @@ const CUSTOMER: CustomerDto = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Alice Smith",
   phone: "+14155550101",
-  version: 1,
   created_at: "2026-01-01T10:00:00Z",
   updated_at: "2026-01-01T10:00:00Z",
 };

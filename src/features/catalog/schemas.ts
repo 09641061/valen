@@ -24,7 +24,6 @@ export const ServiceSchema = z.object({
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
   sort_order: z.number().int().min(1),
-  version: z.number().int().min(1),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -33,7 +32,6 @@ export const CategorySchema = z.object({
   id: z.string().uuid(),
   name: trimmedNameSchema,
   sort_order: z.number().int().min(1),
-  version: z.number().int().min(1),
   created_at: z.string(),
   updated_at: z.string(),
   services: z.array(ServiceSchema).default([]),
@@ -47,18 +45,15 @@ export const CreateCategorySchema = z.object({
 
 export const UpdateCategorySchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
   name: trimmedNameSchema,
 });
 
 export const DeleteCategorySchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
 });
 
 export const MoveCategorySchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
   sort_order: z.number().int().min(1),
 });
 
@@ -72,7 +67,6 @@ export const CreateServiceSchema = z.object({
 
 export const UpdateServiceSchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
   name: trimmedNameSchema,
   duration_minutes: durationMinutesSchema,
   price_minor_units: priceMinorUnitsSchema,
@@ -80,12 +74,10 @@ export const UpdateServiceSchema = z.object({
 
 export const DeleteServiceSchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
 });
 
 export const MoveServiceSchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
   category_id: z.string().uuid(),
   sort_order: z.number().int().min(1),
 });

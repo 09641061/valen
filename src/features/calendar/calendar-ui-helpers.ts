@@ -175,12 +175,6 @@ export function getInitialAppointmentFields(
 
 export function mapAppointmentSaveError(code: string, message: string) {
   if (code === "CONFLICT") return { title: "Time slot conflict", message };
-  if (code === "STALE_VERSION") {
-    return {
-      title: "Outdated appointment",
-      message: "This appointment was modified by someone else. Close and refresh to try again.",
-    };
-  }
   return { title: "Could not save appointment", message };
 }
 

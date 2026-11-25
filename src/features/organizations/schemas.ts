@@ -94,7 +94,6 @@ export const OrganizationSchema = z.object({
   whatsapp_phone_number: z.string().default(""),
   whatsapp_phone_number_id: z.string().default(""),
   whatsapp_enabled: z.boolean().default(false),
-  version: z.number().int().positive(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -102,7 +101,6 @@ export const OrganizationSchema = z.object({
 export type OrganizationDto = z.infer<typeof OrganizationSchema>;
 
 export const UpdateBusinessDetailsSchema = z.object({
-  version: z.number().int().positive(),
   name: z
     .string()
     .trim()
@@ -152,7 +150,6 @@ export function validateBusinessDetails(
 }
 
 export const UpdateBusinessHoursSchema = z.object({
-  version: z.number().int().positive(),
   business_hours: BusinessHoursSchema,
 });
 
@@ -161,7 +158,6 @@ export type UpdateBusinessHoursInput = z.infer<
 >;
 
 export const UpdateAiInstructionsSchema = z.object({
-  version: z.number().int().positive(),
   ai_instructions: z
     .string()
     .max(4000, "Assistant instructions must not exceed 4000 characters"),
@@ -177,7 +173,6 @@ const WHATSAPP_PHONE_ID_REGEX = /^[0-9]{1,64}$/;
 
 export const UpdateWhatsAppConfigSchema = z
   .object({
-    version: z.number().int().positive(),
     whatsapp_enabled: z.boolean(),
     whatsapp_phone_number: z
       .string()
