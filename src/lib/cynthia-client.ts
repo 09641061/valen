@@ -14,6 +14,7 @@ export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "STALE_VERSION"
   | "UPSTREAM_ERROR";
 
 export interface ProblemField {
@@ -62,6 +63,7 @@ function mapStatusToCode(status: number): ApiErrorCode {
   if (status === 400 || status === 422) return "VALIDATION_ERROR";
   if (status === 404) return "NOT_FOUND";
   if (status === 409) return "CONFLICT";
+  if (status === 412) return "STALE_VERSION";
   return "UPSTREAM_ERROR";
 }
 

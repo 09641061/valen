@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   sendConversationMessageAction,
+  updateConversationAiAction,
   updateConversationStatusAction,
 } from "./conversation-actions";
 import {
   CrmApiError,
   sendConversationMessage,
+  updateConversationAi,
   updateConversationStatus,
 } from "./data-access";
 
@@ -24,6 +26,7 @@ vi.mock("./data-access", async (importOriginal) => {
   return {
     ...actual,
     sendConversationMessage: vi.fn(),
+    updateConversationAi: vi.fn(),
     updateConversationStatus: vi.fn(),
   };
 });
@@ -45,6 +48,8 @@ const SAMPLE_CONVERSATION = {
   customer_id: "11111111-1111-4111-8111-111111111111",
   channel: "whatsapp" as const,
   status: "closed" as const,
+  ai_paused: false,
+  version: 4,
   last_message_at: "2026-01-02T12:00:00Z",
   last_message_preview: "Hello!",
   created_at: "2026-01-01T10:00:00Z",
@@ -152,5 +157,65 @@ describe("conversation actions", () => {
         fieldErrors: undefined,
       });
     });
+  });
+
+  describe("updateConversationAiAction", () => {
+    it("forwards version and aiPaused and revalidates /conversations on success", async () => {
+      vi.mocked(updateConversationAi).mockResolvedValueOnce(SAMPLE_CONVERSATION);
+
+      const result = await updateConversationAiAction({
+        conversationId: CONVERSATION_ID,
+        version: 3,
+        aiPaused: false,
+      });
+
+      expect(result).toEqual({ ok: true, data: SAMPLE_CONVERSATION });
+      expect(updateConversationAi).toHaveBeenCalledWith(
+        CONVERSATION_ID,
+        3,
+        false,
+      );
+      expect(revalidatePathMock).toHaveBeenCalledWith("/conversations");
+    });
+
+    it("returns VALIDATION_ERROR for invalid input without calling API", async () => {
+      const result = await updateConversationAiAction({
+        conversationId: "not-a-uuid",
+        version: 0,
+        aiPaused: false,
+      });
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.code).toBe("VALIDATION_ERROR");
+      }
+      expect(updateConversationAi).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["STALE_VERSION", 412, "Conversation was updated by another user."],
+      ["CONFLICT", 409, "Cannot resume AI on a closed conversation."],
+    ] as const)(
+      "propagates %s CrmApiError to typed result",
+      async (code, status, message) => {
+        vi.mocked(updateConversationAi).mockRejectedValueOnce(
+          new CrmApiError(code, message, status),
+        );
+
+        const result = await updateConversationAiAction({
+          conversationId: CONVERSATION_ID,
+          version: 3,
+          aiPaused: false,
+        });
+
+        expect(result).toEqual({
+          ok: false,
+          code,
+          message,
+          fieldErrors: undefined,
+        });
+        expect(revalidatePathMock).not.toHaveBeenCalled();
+      },
+    );
   });
 });

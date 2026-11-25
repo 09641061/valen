@@ -119,7 +119,7 @@ export function ConversationList({
                   <p className="truncate text-xs text-muted-foreground">
                     {conversation.last_message_preview || "No messages yet"}
                   </p>
-                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                     <Badge
                       variant={
                         conversation.status === "open" ? "default" : "secondary"
@@ -128,6 +128,11 @@ export function ConversationList({
                     >
                       {conversation.status}
                     </Badge>
+                    {conversation.ai_paused ? (
+                      <Badge variant="outline" className="h-5 px-2 text-[10px]">
+                        AI paused
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
               </button>

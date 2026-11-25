@@ -29,6 +29,7 @@ function makeOrganization(
       sunday: { is_open: false, open_time: "09:00", close_time: "14:00" },
     },
     ai_instructions: "",
+    ai_enabled: false,
     whatsapp_phone_number: "",
     whatsapp_phone_number_id: "",
     whatsapp_enabled: false,

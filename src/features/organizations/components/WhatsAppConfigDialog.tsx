@@ -181,12 +181,6 @@ export function WhatsAppConfigDialog({
             ) : null}
           </div>
 
-          <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-            Access Token and Webhook Secret are configured on the server via{" "}
-            <code className="font-mono">.env</code> and are never exposed to the
-            browser.
-          </p>
-
           <DialogFooter className="gap-2 pt-2">
             <Button
               type="button"

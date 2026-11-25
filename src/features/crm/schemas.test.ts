@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   ConversationPageSchema,
+  ConversationSchema,
   CreateCustomerSchema,
   CustomerPageSchema,
   MessageListSchema,
+  UpdateConversationAiSchema,
   UpdateCustomerSchema,
 } from "./schemas";
 
@@ -60,6 +62,7 @@ describe("crm schemas", () => {
           customer_id: "11111111-1111-4111-8111-111111111111",
           channel: "whatsapp",
           status: "open",
+          version: 1,
           last_message_preview: "Hello!",
           created_at: "2026-01-01T10:00:00Z",
           updated_at: "2026-01-01T10:00:00Z",
@@ -84,5 +87,62 @@ describe("crm schemas", () => {
       ],
     });
     expect(messages.items[0].direction).toBe("inbound");
+  });
+
+  it("defaults ai_paused to false and parses optional handoff_reason on ConversationSchema", () => {
+    const base = {
+      id: "22222222-2222-4222-8222-222222222222",
+      customer_id: "11111111-1111-4111-8111-111111111111",
+      channel: "whatsapp",
+      status: "open",
+      version: 1,
+      created_at: "2026-01-01T10:00:00Z",
+      updated_at: "2026-01-01T10:00:00Z",
+    };
+
+    const defaulted = ConversationSchema.parse(base);
+    expect(defaulted.ai_paused).toBe(false);
+    expect(defaulted.handoff_reason).toBeUndefined();
+
+    const paused = ConversationSchema.parse({
+      ...base,
+      ai_paused: true,
+      handoff_reason: "staff_replied",
+    });
+    expect(paused.ai_paused).toBe(true);
+    expect(paused.handoff_reason).toBe("staff_replied");
+  });
+
+  it("validates UpdateConversationAiSchema boundaries", () => {
+    const valid = UpdateConversationAiSchema.safeParse({
+      conversationId: "22222222-2222-4222-8222-222222222222",
+      version: 1,
+      aiPaused: false,
+    });
+    expect(valid.success).toBe(true);
+
+    expect(
+      UpdateConversationAiSchema.safeParse({
+        conversationId: "not-a-uuid",
+        version: 1,
+        aiPaused: false,
+      }).success,
+    ).toBe(false);
+
+    expect(
+      UpdateConversationAiSchema.safeParse({
+        conversationId: "22222222-2222-4222-8222-222222222222",
+        version: 0,
+        aiPaused: false,
+      }).success,
+    ).toBe(false);
+
+    expect(
+      UpdateConversationAiSchema.safeParse({
+        conversationId: "22222222-2222-4222-8222-222222222222",
+        version: 1.5,
+        aiPaused: false,
+      }).success,
+    ).toBe(false);
   });
 });

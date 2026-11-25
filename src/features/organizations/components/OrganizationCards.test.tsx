@@ -33,6 +33,7 @@ function makeOrganization(
       sunday: { is_open: false, open_time: "09:00", close_time: "14:00" },
     },
     ai_instructions: "",
+    ai_enabled: false,
     whatsapp_phone_number: "",
     whatsapp_phone_number_id: "",
     whatsapp_enabled: false,
@@ -192,13 +193,18 @@ describe("AiInstructionsCard", () => {
     vi.clearAllMocks();
   });
 
-  it("omits configuration status badges and saves AI instructions", async () => {
+  it("toggles auto-reply with helper note and saves AI settings", async () => {
     const user = userEvent.setup();
     const onUpdated = vi.fn();
-    const baseOrg = makeOrganization({ ai_instructions: "" });
+    const baseOrg = makeOrganization({
+      ai_instructions: "",
+      ai_enabled: false,
+      whatsapp_enabled: false,
+    });
     const updatedOrg = {
       ...baseOrg,
       ai_instructions: "Greet customers warmly.",
+      ai_enabled: true,
     };
     vi.mocked(actions.updateAiInstructionsAction).mockResolvedValue({
       ok: true,
@@ -212,18 +218,21 @@ describe("AiInstructionsCard", () => {
       />,
     );
 
-    expect(screen.queryByText("Not configured")).not.toBeInTheDocument();
-    expect(screen.queryByText("Configured")).not.toBeInTheDocument();
+    const toggle = screen.getByRole("switch", { name: "Auto-reply on WhatsApp" });
+    expect(toggle).not.toBeChecked();
+    expect(screen.queryByText(/Connect and enable WhatsApp above/)).not.toBeInTheDocument();
 
-    await user.type(
-      screen.getByLabelText("Assistant instructions"),
-      "Greet customers warmly.",
-    );
+    await user.click(toggle);
+    expect(toggle).toBeChecked();
+    expect(screen.getByText("Connect and enable WhatsApp above to start sending automatic replies.")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Assistant instructions"), "Greet customers warmly.");
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
       expect(actions.updateAiInstructionsAction).toHaveBeenCalledWith({
         ai_instructions: "Greet customers warmly.",
+        ai_enabled: true,
       });
     });
     expect(onUpdated).toHaveBeenCalledWith(updatedOrg);

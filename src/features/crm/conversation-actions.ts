@@ -6,14 +6,17 @@ import type { CrmActionResult } from "./actions";
 import {
   CrmApiError,
   sendConversationMessage,
+  updateConversationAi,
   updateConversationStatus,
 } from "./data-access";
 import {
   SendMessageSchema,
+  UpdateConversationAiSchema,
   UpdateConversationStatusSchema,
   type ConversationDto,
   type MessageDto,
   type SendMessageInput,
+  type UpdateConversationAiInput,
   type UpdateConversationStatusInput,
 } from "./schemas";
 
@@ -77,6 +80,24 @@ export async function updateConversationStatusAction(
     const updated = await updateConversationStatus(conversationId, status);
     revalidatePath("/conversations");
     revalidatePath("/customers");
+    return { ok: true, data: updated };
+  } catch (error) {
+    return formatConversationActionError(error);
+  }
+}
+
+export async function updateConversationAiAction(
+  input: UpdateConversationAiInput,
+): Promise<CrmActionResult<ConversationDto>> {
+  try {
+    const { conversationId, version, aiPaused } =
+      UpdateConversationAiSchema.parse(input);
+    const updated = await updateConversationAi(
+      conversationId,
+      version,
+      aiPaused,
+    );
+    revalidatePath("/conversations");
     return { ok: true, data: updated };
   } catch (error) {
     return formatConversationActionError(error);

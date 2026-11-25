@@ -45,6 +45,9 @@ export const ConversationSchema = z.object({
   customer_id: z.string().uuid(),
   channel: z.string(),
   status: ConversationStatusSchema,
+  ai_paused: z.boolean().default(false),
+  handoff_reason: z.string().optional(),
+  version: z.number().int().min(1),
   last_message_at: z.string().optional(),
   last_message_preview: z.string().optional(),
   created_at: z.string(),
@@ -114,6 +117,12 @@ export const UpdateConversationStatusSchema = z.object({
   status: ConversationStatusSchema,
 });
 
+export const UpdateConversationAiSchema = z.object({
+  conversationId: z.string().uuid(),
+  version: z.number().int().min(1),
+  aiPaused: z.boolean(),
+});
+
 export type CustomerDto = z.infer<typeof CustomerSchema>;
 export type CustomerPageDto = z.infer<typeof CustomerPageSchema>;
 export type ConversationDto = z.infer<typeof ConversationSchema>;
@@ -125,6 +134,9 @@ export type DeleteCustomerInput = z.input<typeof DeleteCustomerSchema>;
 export type SendMessageInput = z.input<typeof SendMessageSchema>;
 export type UpdateConversationStatusInput = z.input<
   typeof UpdateConversationStatusSchema
+>;
+export type UpdateConversationAiInput = z.input<
+  typeof UpdateConversationAiSchema
 >;
 
 export interface HydratedConversation {
