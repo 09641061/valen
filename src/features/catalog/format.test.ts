@@ -21,7 +21,6 @@ function makeService(
     duration_minutes: 30,
     price_minor_units: 1500,
     sort_order: sortOrder,
-    version: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
   };
@@ -36,7 +35,6 @@ function makeCategory(
     id,
     name: `Category ${id}`,
     sort_order: sortOrder,
-    version: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     services,

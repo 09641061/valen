@@ -17,13 +17,11 @@ import { OrganizationFormCard } from "./OrganizationFormCard";
 interface BusinessHoursCardProps {
   organization: OrganizationDto;
   onUpdated: (org: OrganizationDto) => void;
-  onStaleVersion: (message: string) => void;
 }
 
 export function BusinessHoursCard({
   organization,
   onUpdated,
-  onStaleVersion,
 }: BusinessHoursCardProps) {
   const [hours, setHours] = useState<BusinessHours>(organization.business_hours);
   const [dayErrors, setDayErrors] = useState<Partial<Record<DayKey, string>>>({});
@@ -60,15 +58,10 @@ export function BusinessHoursCard({
 
     startTransition(async () => {
       const result = await updateBusinessHoursAction({
-        version: organization.version,
         business_hours: hours,
       });
       if (!result.ok) {
-        if (result.code === "STALE_VERSION") {
-          onStaleVersion(result.message);
-        } else {
-          setErrorMessage(result.message);
-        }
+        setErrorMessage(result.message);
         return;
       }
       onUpdated(result.data);

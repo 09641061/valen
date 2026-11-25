@@ -8,8 +8,15 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import type { ActorDto } from "@/features/iam/schemas";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  user,
+  children,
+}: {
+  user: ActorDto;
+  children: ReactNode;
+}) {
   return (
     <SidebarProvider
       style={
@@ -19,7 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         } as React.CSSProperties
       }
     >
-      <AppSidebar />
+      <AppSidebar user={user} />
       <SidebarInset className="min-h-svh bg-background">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
           <SidebarTrigger

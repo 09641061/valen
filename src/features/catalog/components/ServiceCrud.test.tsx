@@ -32,7 +32,6 @@ const sampleCategories: CategoryDto[] = [
     id: CAT_ID,
     name: "Hair",
     sort_order: 1,
-    version: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     services: [
@@ -43,7 +42,6 @@ const sampleCategories: CategoryDto[] = [
         duration_minutes: 45,
         price_minor_units: 2500,
         sort_order: 1,
-        version: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       },
@@ -104,7 +102,6 @@ describe("Service CRUD in CatalogWorkspace", () => {
       data: {
         ...sampleCategories[0].services[0],
         name: "Modern haircut",
-        version: 2,
       },
     });
 
@@ -124,7 +121,6 @@ describe("Service CRUD in CatalogWorkspace", () => {
       expect(actions.updateServiceAction).toHaveBeenCalledWith(
         expect.objectContaining({
           id: SVC_ID,
-          version: 1,
           name: "Modern haircut",
         }),
       );
@@ -157,7 +153,6 @@ describe("Service CRUD in CatalogWorkspace", () => {
     await waitFor(() => {
       expect(actions.deleteServiceAction).toHaveBeenCalledWith({
         id: SVC_ID,
-        version: 1,
       });
     });
     expect(mockRefresh).toHaveBeenCalled();

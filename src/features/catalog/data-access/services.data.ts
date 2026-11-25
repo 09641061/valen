@@ -8,7 +8,7 @@ import {
   type ServiceDto,
   type UpdateServiceInput,
 } from "../schemas";
-import { cynthiaFetch, formatIfMatchHeader } from "./client";
+import { cynthiaFetch } from "./client";
 
 /**
  * Creates a new service inside a category.
@@ -44,9 +44,6 @@ export async function updateService(
 ): Promise<ServiceDto> {
   const response = await cynthiaFetch(`/v1/catalog/services/${input.id}`, {
     method: "PUT",
-    headers: {
-      "If-Match": formatIfMatchHeader(input.version),
-    },
     body: JSON.stringify({
       name: input.name,
       duration_minutes: input.duration_minutes,
@@ -58,28 +55,22 @@ export async function updateService(
 }
 
 /**
- * Deletes a service using optimistic concurrency.
+ * Deletes a service.
  */
 export async function deleteService(input: DeleteServiceInput): Promise<void> {
   await cynthiaFetch(`/v1/catalog/services/${input.id}`, {
     method: "DELETE",
-    headers: {
-      "If-Match": formatIfMatchHeader(input.version),
-    },
   });
 }
 
 /**
- * Moves a service within its category or to another category using optimistic concurrency.
+ * Moves a service within its category or to another category.
  */
 export async function moveService(input: MoveServiceInput): Promise<ServiceDto> {
   const response = await cynthiaFetch(
     `/v1/catalog/services/${input.id}/placement`,
     {
       method: "PUT",
-      headers: {
-        "If-Match": formatIfMatchHeader(input.version),
-      },
       body: JSON.stringify({
         category_id: input.category_id,
         sort_order: input.sort_order,

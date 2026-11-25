@@ -36,7 +36,6 @@ function makeOrganization(
     whatsapp_phone_number: "",
     whatsapp_phone_number_id: "",
     whatsapp_enabled: false,
-    version: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     ...overrides,
@@ -66,12 +65,11 @@ describe("BusinessDetailsCard", () => {
     vi.restoreAllMocks();
   });
 
-  it("omits 'Use mine' button and defaults unconfigured v1 UTC org to local timezone", () => {
+  it("omits 'Use mine' button and defaults unconfigured UTC org to local timezone", () => {
     render(
       <BusinessDetailsCard
-        organization={makeOrganization({ version: 1, timezone: "UTC" })}
+        organization={makeOrganization({ timezone: "UTC" })}
         onUpdated={vi.fn()}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -90,7 +88,6 @@ describe("BusinessDetailsCard", () => {
     const user = userEvent.setup();
     const onUpdated = vi.fn();
     const updatedOrg = makeOrganization({
-      version: 3,
       name: "Takodu Madrid",
       contact_email: "madrid@takodu.com",
       timezone: "Europe/Madrid",
@@ -104,12 +101,10 @@ describe("BusinessDetailsCard", () => {
     render(
       <BusinessDetailsCard
         organization={makeOrganization({
-          version: 2,
           timezone: "Europe/Madrid",
           currency_code: "USD",
         })}
         onUpdated={onUpdated}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -135,7 +130,6 @@ describe("BusinessDetailsCard", () => {
 
     await waitFor(() => {
       expect(actions.updateBusinessDetailsAction).toHaveBeenCalledWith({
-        version: 2,
         name: "Takodu Madrid",
         contact_email: "madrid@takodu.com",
         timezone: "Europe/Madrid",
@@ -154,7 +148,7 @@ describe("BusinessHoursCard", () => {
   it("toggles a day closed, updates time via TimePicker, and submits", async () => {
     const user = userEvent.setup();
     const onUpdated = vi.fn();
-    const baseOrg = makeOrganization({ version: 2 });
+    const baseOrg = makeOrganization();
     const expectedHours = {
       ...baseOrg.business_hours,
       monday: { ...baseOrg.business_hours.monday, is_open: false },
@@ -162,14 +156,13 @@ describe("BusinessHoursCard", () => {
     };
     vi.mocked(actions.updateBusinessHoursAction).mockResolvedValue({
       ok: true,
-      data: { ...baseOrg, version: 3, business_hours: expectedHours },
+      data: { ...baseOrg, business_hours: expectedHours },
     });
 
     render(
       <BusinessHoursCard
         organization={baseOrg}
         onUpdated={onUpdated}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -187,7 +180,6 @@ describe("BusinessHoursCard", () => {
 
     await waitFor(() => {
       expect(actions.updateBusinessHoursAction).toHaveBeenCalledWith({
-        version: 2,
         business_hours: expectedHours,
       });
     });
@@ -203,10 +195,9 @@ describe("AiInstructionsCard", () => {
   it("omits configuration status badges and saves AI instructions", async () => {
     const user = userEvent.setup();
     const onUpdated = vi.fn();
-    const baseOrg = makeOrganization({ version: 2, ai_instructions: "" });
+    const baseOrg = makeOrganization({ ai_instructions: "" });
     const updatedOrg = {
       ...baseOrg,
-      version: 3,
       ai_instructions: "Greet customers warmly.",
     };
     vi.mocked(actions.updateAiInstructionsAction).mockResolvedValue({
@@ -218,7 +209,6 @@ describe("AiInstructionsCard", () => {
       <AiInstructionsCard
         organization={baseOrg}
         onUpdated={onUpdated}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -233,7 +223,6 @@ describe("AiInstructionsCard", () => {
 
     await waitFor(() => {
       expect(actions.updateAiInstructionsAction).toHaveBeenCalledWith({
-        version: 2,
         ai_instructions: "Greet customers warmly.",
       });
     });

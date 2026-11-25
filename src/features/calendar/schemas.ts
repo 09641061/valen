@@ -55,7 +55,6 @@ export const AppointmentSchema = z.object({
   status: AppointmentStatusSchema,
   channel: z.string().optional().default("manual"),
   notes: z.string().optional().default(""),
-  version: z.number().int().min(1),
   created_at: z.string().optional().default(""),
   updated_at: z.string().optional().default(""),
 });
@@ -83,7 +82,6 @@ export type CreateAppointmentInput = z.input<typeof CreateAppointmentSchema>;
 
 export const UpdateAppointmentSchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
   customer_id: z.string().uuid("Select a customer").optional(),
   service_id: z.string().uuid("Select a service").optional(),
   person_id: z.string().uuid("Select a person").optional(),
@@ -101,7 +99,6 @@ export type UpdateAppointmentInput = z.input<typeof UpdateAppointmentSchema>;
 
 export const DeleteAppointmentSchema = z.object({
   id: z.string().uuid(),
-  version: z.number().int().min(1),
 });
 
 export type DeleteAppointmentInput = z.input<typeof DeleteAppointmentSchema>;

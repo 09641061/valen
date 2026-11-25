@@ -1,28 +1,24 @@
 "use client";
 
-import { AlertTriangle, Plus, RefreshCw, Search, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface CatalogHeaderProps {
   searchQuery: string;
   isFiltering: boolean;
-  staleMessage: string | null;
   errorMessage: string | null;
   onSearchChange: (value: string) => void;
   onNewCategory: () => void;
-  onReloadCatalog: () => void;
   onDismissError: () => void;
 }
 
 export function CatalogHeader({
   searchQuery,
   isFiltering,
-  staleMessage,
   errorMessage,
   onSearchChange,
   onNewCategory,
-  onReloadCatalog,
   onDismissError,
 }: CatalogHeaderProps) {
   return (
@@ -77,36 +73,6 @@ export function CatalogHeader({
           </p>
         ) : null}
       </div>
-
-      {staleMessage ? (
-        <div
-          role="alert"
-          className="flex flex-col gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-foreground sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="flex items-start gap-2.5">
-            <AlertTriangle
-              className="mt-0.5 size-4 shrink-0 text-amber-600"
-              aria-hidden="true"
-            />
-            <div>
-              <p className="font-medium">
-                The catalog changed while you were editing
-              </p>
-              <p className="text-muted-foreground">{staleMessage}</p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onReloadCatalog}
-            className="shrink-0"
-          >
-            <RefreshCw className="size-4" aria-hidden="true" />
-            <span>Reload catalog</span>
-          </Button>
-        </div>
-      ) : null}
 
       {errorMessage ? (
         <div

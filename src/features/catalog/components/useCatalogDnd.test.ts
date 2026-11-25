@@ -23,7 +23,6 @@ function makeService(
   categoryId: string,
   name: string,
   sortOrder: number,
-  version = 1,
 ): ServiceDto {
   return {
     id,
@@ -32,7 +31,6 @@ function makeService(
     duration_minutes: 30,
     price_minor_units: 2000,
     sort_order: sortOrder,
-    version,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
   };
@@ -44,28 +42,25 @@ function makeCategories(): CategoryDto[] {
       id: CAT_A,
       name: "Hair",
       sort_order: 1,
-      version: 1,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
       services: [
-        makeService(SVC_1, CAT_A, "Cut", 1, 2),
-        makeService(SVC_2, CAT_A, "Wash", 2, 1),
+        makeService(SVC_1, CAT_A, "Cut", 1),
+        makeService(SVC_2, CAT_A, "Wash", 2),
       ],
     },
     {
       id: CAT_B,
       name: "Beard",
       sort_order: 2,
-      version: 1,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
-      services: [makeService(SVC_3, CAT_B, "Trim", 1, 1)],
+      services: [makeService(SVC_3, CAT_B, "Trim", 1)],
     },
     {
       id: CAT_EMPTY,
       name: "Spa",
       sort_order: 3,
-      version: 1,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
       services: [],
@@ -75,7 +70,6 @@ function makeCategories(): CategoryDto[] {
 
 function makeHook(categories = makeCategories()) {
   const addOptimistic = vi.fn();
-  const onStaleVersion = vi.fn();
   const onError = vi.fn();
   const onSuccess = vi.fn();
   const hook = renderHook(() =>
@@ -83,12 +77,11 @@ function makeHook(categories = makeCategories()) {
       categories,
       isFiltering: false,
       addOptimistic,
-      onStaleVersion,
       onError,
       onSuccess,
     }),
   );
-  return { ...hook, addOptimistic, onStaleVersion, onError, onSuccess };
+  return { ...hook, addOptimistic, onError, onSuccess };
 }
 
 describe("catalogCollisionDetection", () => {
@@ -145,7 +138,7 @@ describe("useCatalogDnd", () => {
   it("reorders services within the same category on drag end", async () => {
     vi.mocked(actions.moveServiceAction).mockResolvedValue({
       ok: true,
-      data: makeService(SVC_1, CAT_A, "Cut", 2, 3),
+      data: makeService(SVC_1, CAT_A, "Cut", 2),
     });
     const { result, addOptimistic, onSuccess } = makeHook();
 
@@ -158,7 +151,6 @@ describe("useCatalogDnd", () => {
     await waitFor(() => {
       expect(actions.moveServiceAction).toHaveBeenCalledWith({
         id: SVC_1,
-        version: 2,
         category_id: CAT_A,
         sort_order: 2,
       });
@@ -175,7 +167,7 @@ describe("useCatalogDnd", () => {
   it("moves a service into an empty category with live preview and persistence", async () => {
     vi.mocked(actions.moveServiceAction).mockResolvedValue({
       ok: true,
-      data: makeService(SVC_1, CAT_EMPTY, "Cut", 1, 3),
+      data: makeService(SVC_1, CAT_EMPTY, "Cut", 1),
     });
     const { result, onSuccess } = makeHook();
 
@@ -190,7 +182,6 @@ describe("useCatalogDnd", () => {
     await waitFor(() => {
       expect(actions.moveServiceAction).toHaveBeenCalledWith({
         id: SVC_1,
-        version: 2,
         category_id: CAT_EMPTY,
         sort_order: 1,
       });
@@ -201,7 +192,7 @@ describe("useCatalogDnd", () => {
   it("moves a service into a non-empty category with onDragOver preview and onDragEnd persistence", async () => {
     vi.mocked(actions.moveServiceAction).mockResolvedValue({
       ok: true,
-      data: makeService(SVC_1, CAT_B, "Cut", 1, 3),
+      data: makeService(SVC_1, CAT_B, "Cut", 1),
     });
     const { result, onSuccess } = makeHook();
 
@@ -217,7 +208,6 @@ describe("useCatalogDnd", () => {
     await waitFor(() => {
       expect(actions.moveServiceAction).toHaveBeenCalledWith({
         id: SVC_1,
-        version: 2,
         category_id: CAT_B,
         sort_order: 1,
       });

@@ -32,7 +32,6 @@ function makeOrganization(
     whatsapp_phone_number: "",
     whatsapp_phone_number_id: "",
     whatsapp_enabled: false,
-    version: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     ...overrides,
@@ -49,7 +48,6 @@ describe("WhatsAppIntegrationCard", () => {
       <WhatsAppIntegrationCard
         organization={makeOrganization()}
         onUpdated={vi.fn()}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -65,7 +63,6 @@ describe("WhatsAppIntegrationCard", () => {
           whatsapp_phone_number_id: "106540352242922",
         })}
         onUpdated={vi.fn()}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -81,7 +78,6 @@ describe("WhatsAppIntegrationCard", () => {
       whatsapp_enabled: true,
       whatsapp_phone_number: "+51994356103",
       whatsapp_phone_number_id: "106540352242922",
-      version: 2,
     });
     vi.mocked(actions.updateWhatsAppConfigAction).mockResolvedValueOnce({
       ok: true,
@@ -92,7 +88,6 @@ describe("WhatsAppIntegrationCard", () => {
       <WhatsAppIntegrationCard
         organization={makeOrganization()}
         onUpdated={onUpdated}
-        onStaleVersion={vi.fn()}
       />,
     );
 
@@ -117,39 +112,11 @@ describe("WhatsAppIntegrationCard", () => {
 
     await waitFor(() => {
       expect(actions.updateWhatsAppConfigAction).toHaveBeenCalledWith({
-        version: 1,
         whatsapp_enabled: true,
         whatsapp_phone_number: "+51 994-356-103",
         whatsapp_phone_number_id: "106540352242922",
       });
     });
     expect(onUpdated).toHaveBeenCalledWith(updatedOrg);
-  });
-
-  it("propagates STALE_VERSION to onStaleVersion", async () => {
-    const user = userEvent.setup();
-    const onStaleVersion = vi.fn();
-    vi.mocked(actions.updateWhatsAppConfigAction).mockResolvedValueOnce({
-      ok: false,
-      code: "STALE_VERSION",
-      message: "Organization was updated elsewhere",
-    });
-
-    render(
-      <WhatsAppIntegrationCard
-        organization={makeOrganization()}
-        onUpdated={vi.fn()}
-        onStaleVersion={onStaleVersion}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Configure" }));
-    await user.click(screen.getByRole("button", { name: "Save changes" }));
-
-    await waitFor(() => {
-      expect(onStaleVersion).toHaveBeenCalledWith(
-        "Organization was updated elsewhere",
-      );
-    });
   });
 });

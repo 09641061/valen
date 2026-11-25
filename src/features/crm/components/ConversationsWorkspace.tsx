@@ -139,7 +139,6 @@ export function ConversationsWorkspace({
     startStatusTransition(async () => {
       const result = await updateConversationStatusAction({
         conversationId: selectedConversation.id,
-        version: selectedConversation.version,
         status: nextStatus,
       });
       if (!result.ok) {

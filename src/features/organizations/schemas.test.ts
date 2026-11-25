@@ -25,7 +25,6 @@ const validHours = {
 };
 
 const validDetails = {
-  version: 1,
   name: "Takodu Salon",
   contact_email: "hello@takodu.com",
   timezone: "America/New_York",
@@ -60,7 +59,6 @@ describe("organizations DTO and update schemas", () => {
         timezone: "UTC",
         business_hours: validHours,
         ai_instructions: "",
-        version: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       }).success,
@@ -75,7 +73,6 @@ describe("organizations DTO and update schemas", () => {
         timezone: "UTC",
         business_hours: validHours,
         ai_instructions: "",
-        version: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       }).success,
@@ -84,7 +81,6 @@ describe("organizations DTO and update schemas", () => {
 
   it("trims and accepts UpdateBusinessDetailsSchema boundaries", () => {
     const parsed = UpdateBusinessDetailsSchema.safeParse({
-      version: 1,
       name: "  Ab  ",
       contact_email: " a@b.co ",
       timezone: " UTC ",
@@ -107,7 +103,6 @@ describe("organizations DTO and update schemas", () => {
   });
 
   it.each([
-    { version: 0 },
     { name: "   " },
     { name: "A" },
     { name: "x".repeat(121) },
@@ -130,26 +125,17 @@ describe("organizations DTO and update schemas", () => {
   it("validates UpdateBusinessHoursSchema and UpdateAiInstructionsSchema boundaries", () => {
     expect(
       UpdateBusinessHoursSchema.safeParse({
-        version: 2,
         business_hours: validHours,
       }).success,
     ).toBe(true);
-    expect(
-      UpdateBusinessHoursSchema.safeParse({
-        version: 0,
-        business_hours: validHours,
-      }).success,
-    ).toBe(false);
 
     expect(
       UpdateAiInstructionsSchema.safeParse({
-        version: 1,
         ai_instructions: "a".repeat(4000),
       }).success,
     ).toBe(true);
     expect(
       UpdateAiInstructionsSchema.safeParse({
-        version: 1,
         ai_instructions: "a".repeat(4001),
       }).success,
     ).toBe(false);
@@ -157,7 +143,6 @@ describe("organizations DTO and update schemas", () => {
 
   it("validates UpdateWhatsAppConfigSchema rules and normalization", () => {
     const enabled = UpdateWhatsAppConfigSchema.safeParse({
-      version: 1,
       whatsapp_enabled: true,
       whatsapp_phone_number: " +51 994-356-103 ",
       whatsapp_phone_number_id: " 106540352242922 ",
@@ -170,7 +155,6 @@ describe("organizations DTO and update schemas", () => {
 
     expect(
       UpdateWhatsAppConfigSchema.safeParse({
-        version: 1,
         whatsapp_enabled: false,
         whatsapp_phone_number: "",
         whatsapp_phone_number_id: "",
@@ -185,9 +169,7 @@ describe("organizations DTO and update schemas", () => {
       { whatsapp_enabled: false, whatsapp_phone_number: "", whatsapp_phone_number_id: "1".repeat(65) },
     ];
     for (const payload of invalidCases) {
-      expect(
-        UpdateWhatsAppConfigSchema.safeParse({ version: 1, ...payload }).success,
-      ).toBe(false);
+      expect(UpdateWhatsAppConfigSchema.safeParse(payload).success).toBe(false);
     }
   });
 });
