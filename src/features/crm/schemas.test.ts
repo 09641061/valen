@@ -27,14 +27,13 @@ describe("crm schemas", () => {
     expect(result.success).toBe(false);
   });
 
-  it("validates UpdateCustomerSchema with positive integer version", () => {
+  it("validates UpdateCustomerSchema", () => {
     const parsed = UpdateCustomerSchema.parse({
       id: "11111111-1111-4111-8111-111111111111",
-      version: 2,
       name: "Jane Doe",
       phone: "+14155552671",
     });
-    expect(parsed.version).toBe(2);
+    expect(parsed.name).toBe("Jane Doe");
   });
 
   it("parses paginated customer, conversation, and message responses", () => {
@@ -44,7 +43,6 @@ describe("crm schemas", () => {
           id: "11111111-1111-4111-8111-111111111111",
           name: "Jane Doe",
           phone: "+14155552671",
-          version: 1,
           created_at: "2026-01-01T10:00:00Z",
           updated_at: "2026-01-01T10:00:00Z",
         },
@@ -62,7 +60,6 @@ describe("crm schemas", () => {
           customer_id: "11111111-1111-4111-8111-111111111111",
           channel: "whatsapp",
           status: "open",
-          version: 1,
           last_message_preview: "Hello!",
           created_at: "2026-01-01T10:00:00Z",
           updated_at: "2026-01-01T10:00:00Z",

@@ -42,7 +42,6 @@ const CUSTOMER = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Jane Doe",
   phone: "+573001234567",
-  version: 1,
   created_at: "2026-01-01T10:00:00Z",
   updated_at: "2026-01-01T10:00:00Z",
 };
@@ -84,7 +83,7 @@ describe("crm actions", () => {
 
   it("revalidates /customers on create, update, and delete", async () => {
     vi.mocked(createCustomer).mockResolvedValueOnce(CUSTOMER);
-    vi.mocked(updateCustomer).mockResolvedValueOnce({ ...CUSTOMER, version: 2 });
+    vi.mocked(updateCustomer).mockResolvedValueOnce({ ...CUSTOMER, name: "Jane Updated" });
     vi.mocked(deleteCustomer).mockResolvedValueOnce(undefined);
 
     const created = await createCustomerAction({
@@ -95,7 +94,6 @@ describe("crm actions", () => {
 
     const updated = await updateCustomerAction({
       id: CUSTOMER.id,
-      version: 1,
       name: "Jane Updated",
       phone: "+573001234567",
     });

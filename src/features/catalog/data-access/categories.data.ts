@@ -9,7 +9,7 @@ import {
   type MoveCategoryInput,
   type UpdateCategoryInput,
 } from "../schemas";
-import { cynthiaFetch, formatIfMatchHeader } from "./client";
+import { cynthiaFetch } from "./client";
 
 function sortCatalog(categories: CategoryDto[]): CategoryDto[] {
   return [...categories]
@@ -52,9 +52,6 @@ export async function updateCategory(
 ): Promise<CategoryDto> {
   const response = await cynthiaFetch(`/v1/catalog/categories/${input.id}`, {
     method: "PUT",
-    headers: {
-      "If-Match": formatIfMatchHeader(input.version),
-    },
     body: JSON.stringify({ name: input.name }),
   });
   const payload = await response.json();
@@ -62,19 +59,16 @@ export async function updateCategory(
 }
 
 /**
- * Deletes a category using optimistic concurrency.
+ * Deletes a category.
  */
 export async function deleteCategory(input: DeleteCategoryInput): Promise<void> {
   await cynthiaFetch(`/v1/catalog/categories/${input.id}`, {
     method: "DELETE",
-    headers: {
-      "If-Match": formatIfMatchHeader(input.version),
-    },
   });
 }
 
 /**
- * Reorders a category to a new 1-based sort_order using optimistic concurrency.
+ * Reorders a category to a new 1-based sort_order.
  */
 export async function moveCategory(
   input: MoveCategoryInput,
@@ -83,9 +77,6 @@ export async function moveCategory(
     `/v1/catalog/categories/${input.id}/placement`,
     {
       method: "PUT",
-      headers: {
-        "If-Match": formatIfMatchHeader(input.version),
-      },
       body: JSON.stringify({ sort_order: input.sort_order }),
     },
   );

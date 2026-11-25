@@ -29,7 +29,6 @@ export function CatalogWorkspace({
 }: CatalogWorkspaceProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [staleMessage, setStaleMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -64,7 +63,6 @@ export function CatalogWorkspace({
   const isFiltering = normalizedQuery.length > 0;
 
   function handleMutationSuccess() {
-    setStaleMessage(null);
     setErrorMessage(null);
     router.refresh();
   }
@@ -73,7 +71,6 @@ export function CatalogWorkspace({
     categories: optimisticCategories,
     isFiltering,
     addOptimistic,
-    onStaleVersion: setStaleMessage,
     onError: setErrorMessage,
     onSuccess: handleMutationSuccess,
   });
@@ -105,14 +102,12 @@ export function CatalogWorkspace({
       <CatalogHeader
         searchQuery={searchQuery}
         isFiltering={isFiltering}
-        staleMessage={staleMessage}
         errorMessage={errorMessage}
         onSearchChange={setSearchQuery}
         onNewCategory={() => {
           setEditingCategory(null);
           setCategoryDialogOpen(true);
         }}
-        onReloadCatalog={handleMutationSuccess}
         onDismissError={() => setErrorMessage(null)}
       />
 
@@ -204,7 +199,6 @@ export function CatalogWorkspace({
         open={categoryDialogOpen}
         onOpenChange={setCategoryDialogOpen}
         category={editingCategory}
-        onStaleVersion={setStaleMessage}
         onSuccess={handleMutationSuccess}
       />
 
@@ -222,7 +216,6 @@ export function CatalogWorkspace({
         categoryId={serviceDialogState.categoryId}
         service={serviceDialogState.service}
         currencyCode={currencyCode}
-        onStaleVersion={setStaleMessage}
         onSuccess={handleMutationSuccess}
       />
 
@@ -231,7 +224,6 @@ export function CatalogWorkspace({
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        onStaleVersion={setStaleMessage}
         onSuccess={handleMutationSuccess}
       />
     </div>

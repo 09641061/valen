@@ -78,8 +78,8 @@ export async function updateAppointmentAction(
   input: UpdateAppointmentInput,
 ): Promise<CalendarActionResult<AppointmentDto>> {
   try {
-    const { id, version, ...patch } = UpdateAppointmentSchema.parse(input);
-    const updated = await updateAppointment(id, version, patch);
+    const { id, ...patch } = UpdateAppointmentSchema.parse(input);
+    const updated = await updateAppointment(id, patch);
     revalidatePath("/calendar");
     return { ok: true, data: updated };
   } catch (error) {
@@ -91,8 +91,8 @@ export async function deleteAppointmentAction(
   input: DeleteAppointmentInput,
 ): Promise<CalendarActionResult<null>> {
   try {
-    const { id, version } = DeleteAppointmentSchema.parse(input);
-    await deleteAppointment(id, version);
+    const { id } = DeleteAppointmentSchema.parse(input);
+    await deleteAppointment(id);
     revalidatePath("/calendar");
     return { ok: true, data: null };
   } catch (error) {

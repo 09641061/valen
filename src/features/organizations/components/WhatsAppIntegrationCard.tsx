@@ -10,13 +10,11 @@ import { WhatsAppConfigDialog } from "./WhatsAppConfigDialog";
 interface WhatsAppIntegrationCardProps {
   organization: OrganizationDto;
   onUpdated: (org: OrganizationDto) => void;
-  onStaleVersion: (message: string) => void;
 }
 
 export function WhatsAppIntegrationCard({
   organization,
   onUpdated,
-  onStaleVersion,
 }: WhatsAppIntegrationCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -70,12 +68,11 @@ export function WhatsAppIntegrationCard({
       </Card>
 
       <WhatsAppConfigDialog
-        key={`${organization.version}-${dialogOpen ? "open" : "closed"}`}
+        key={dialogOpen ? "open" : "closed"}
         open={dialogOpen}
         organization={organization}
         onOpenChange={setDialogOpen}
         onUpdated={onUpdated}
-        onStaleVersion={onStaleVersion}
       />
     </>
   );

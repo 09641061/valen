@@ -4,7 +4,6 @@ import { z } from "zod";
 import {
   CynthiaApiError,
   cynthiaFetch,
-  formatIfMatchHeader,
   type ApiErrorCode,
 } from "@/lib/cynthia-client";
 import {
@@ -95,7 +94,6 @@ export async function createAppointment(input: {
 
 export async function updateAppointment(
   id: string,
-  version: number,
   input: {
     customer_id?: string;
     service_id?: string;
@@ -110,9 +108,6 @@ export async function updateAppointment(
     `/v1/appointments/${encodeURIComponent(id)}`,
     {
       method: "PATCH",
-      headers: {
-        "If-Match": formatIfMatchHeader(version),
-      },
       body: JSON.stringify(input),
     },
     ERROR_NAME,
@@ -120,17 +115,11 @@ export async function updateAppointment(
   return AppointmentSchema.parse(await res.json());
 }
 
-export async function deleteAppointment(
-  id: string,
-  version: number,
-): Promise<void> {
+export async function deleteAppointment(id: string): Promise<void> {
   await cynthiaFetch(
     `/v1/appointments/${encodeURIComponent(id)}`,
     {
       method: "DELETE",
-      headers: {
-        "If-Match": formatIfMatchHeader(version),
-      },
     },
     ERROR_NAME,
   );

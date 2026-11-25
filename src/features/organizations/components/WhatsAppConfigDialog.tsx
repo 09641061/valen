@@ -24,7 +24,6 @@ interface WhatsAppConfigDialogProps {
   organization: OrganizationDto;
   onOpenChange: (open: boolean) => void;
   onUpdated: (org: OrganizationDto) => void;
-  onStaleVersion: (message: string) => void;
 }
 
 type WhatsAppFieldErrors = Partial<
@@ -36,7 +35,6 @@ export function WhatsAppConfigDialog({
   organization,
   onOpenChange,
   onUpdated,
-  onStaleVersion,
 }: WhatsAppConfigDialogProps) {
   const [enabled, setEnabled] = useState(organization.whatsapp_enabled);
   const [phoneNumber, setPhoneNumber] = useState(
@@ -54,7 +52,6 @@ export function WhatsAppConfigDialog({
     setErrorMessage(null);
 
     const parsed = UpdateWhatsAppConfigSchema.safeParse({
-      version: organization.version,
       whatsapp_enabled: enabled,
       whatsapp_phone_number: phoneNumber,
       whatsapp_phone_number_id: phoneNumberId,
@@ -79,27 +76,21 @@ export function WhatsAppConfigDialog({
     setFieldErrors({});
     startTransition(async () => {
       const result = await updateWhatsAppConfigAction({
-        version: organization.version,
         whatsapp_enabled: enabled,
         whatsapp_phone_number: phoneNumber,
         whatsapp_phone_number_id: phoneNumberId,
       });
 
       if (!result.ok) {
-        if (result.code === "STALE_VERSION") {
-          onStaleVersion(result.message);
-          onOpenChange(false);
-        } else {
-          if (result.fieldErrors) {
-            setFieldErrors({
-              whatsapp_phone_number:
-                result.fieldErrors.whatsapp_phone_number?.[0],
-              whatsapp_phone_number_id:
-                result.fieldErrors.whatsapp_phone_number_id?.[0],
-            });
-          }
-          setErrorMessage(result.message);
+        if (result.fieldErrors) {
+          setFieldErrors({
+            whatsapp_phone_number:
+              result.fieldErrors.whatsapp_phone_number?.[0],
+            whatsapp_phone_number_id:
+              result.fieldErrors.whatsapp_phone_number_id?.[0],
+          });
         }
+        setErrorMessage(result.message);
         return;
       }
 

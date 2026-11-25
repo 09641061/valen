@@ -32,7 +32,6 @@ const sampleCategories: CategoryDto[] = [
     id: CAT_ID,
     name: "Hair",
     sort_order: 1,
-    version: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     services: [
@@ -43,7 +42,6 @@ const sampleCategories: CategoryDto[] = [
         duration_minutes: 45,
         price_minor_units: 2500,
         sort_order: 1,
-        version: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       },
@@ -130,12 +128,12 @@ describe("CatalogWorkspace", () => {
     expect(mockRefresh).toHaveBeenCalled();
   });
 
-  it("edits a category and displays STALE_VERSION reload banner on conflict", async () => {
+  it("edits a category and displays inline error on conflict", async () => {
     const user = userEvent.setup();
     vi.mocked(actions.updateCategoryAction).mockResolvedValue({
       ok: false,
-      code: "STALE_VERSION",
-      message: "Category was modified by another user.",
+      code: "CONFLICT",
+      message: "A category with that name already exists.",
     });
 
     render(<CatalogWorkspace initialCategories={sampleCategories} />);
@@ -152,15 +150,9 @@ describe("CatalogWorkspace", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(
-        "The catalog changed while you were editing",
+        "A category with that name already exists.",
       );
     });
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Category was modified by another user.",
-    );
-
-    await user.click(screen.getByRole("button", { name: "Reload catalog" }));
-    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it("deletes a category via AlertDialog confirmation", async () => {
@@ -186,7 +178,6 @@ describe("CatalogWorkspace", () => {
     await waitFor(() => {
       expect(actions.deleteCategoryAction).toHaveBeenCalledWith({
         id: CAT_ID,
-        version: 1,
       });
     });
     expect(mockRefresh).toHaveBeenCalled();

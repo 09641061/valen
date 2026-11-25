@@ -21,14 +21,12 @@ export type DeleteTarget =
 interface DeleteConfirmDialogProps {
   target: DeleteTarget | null;
   onOpenChange: (open: boolean) => void;
-  onStaleVersion: (message: string) => void;
   onSuccess: () => void;
 }
 
 export function DeleteConfirmDialog({
   target,
   onOpenChange,
-  onStaleVersion,
   onSuccess,
 }: DeleteConfirmDialogProps) {
   const [error, setError] = useState<string | null>(null);
@@ -43,19 +41,12 @@ export function DeleteConfirmDialog({
         target.kind === "category"
           ? await deleteCategoryAction({
               id: target.category.id,
-              version: target.category.version,
             })
           : await deleteServiceAction({
               id: target.service.id,
-              version: target.service.version,
             });
 
       if (!result.ok) {
-        if (result.code === "STALE_VERSION") {
-          onOpenChange(false);
-          onStaleVersion(result.message);
-          return;
-        }
         setError(result.message);
         return;
       }

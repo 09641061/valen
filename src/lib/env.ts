@@ -15,6 +15,17 @@ export type ServerEnv = z.infer<typeof serverEnvSchema>;
 let cachedEnv: ServerEnv | null = null;
 
 /**
+ * Returns whether auth cookies should be marked Secure based on environment.
+ */
+export function isSecureCookieEnv(): boolean {
+  return (
+    process.env.COOKIE_SECURE === "true" ||
+    (process.env.NODE_ENV === "production" &&
+      process.env.COOKIE_SECURE !== "false")
+  );
+}
+
+/**
  * Parses and caches server-only environment variables at runtime.
  */
 export function getServerEnv(): ServerEnv {

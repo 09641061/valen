@@ -89,23 +89,16 @@ export function AppointmentDetailDialog({
     ? []
     : STATUS_ACTIONS.filter((action) => action.status !== appointment.status);
 
-  function formatMutationError(code: string, message: string) {
-    return code === "STALE_VERSION"
-      ? "This appointment was updated elsewhere. Refresh and try again."
-      : message;
-  }
-
   function handleStatusChange(nextStatus: AppointmentStatus) {
     if (!appointment) return;
     setErrorMessage(null);
     startTransition(async () => {
       const result = await updateAppointmentAction({
         id: appointment.id,
-        version: appointment.version,
         status: nextStatus,
       });
       if (!result.ok) {
-        setErrorMessage(formatMutationError(result.code, result.message));
+        setErrorMessage(result.message);
         return;
       }
       onUpdated(result.data);
@@ -118,11 +111,10 @@ export function AppointmentDetailDialog({
     startTransition(async () => {
       const result = await deleteAppointmentAction({
         id: appointment.id,
-        version: appointment.version,
       });
       if (!result.ok) {
         setConfirmDeleteOpen(false);
-        setErrorMessage(formatMutationError(result.code, result.message));
+        setErrorMessage(result.message);
         return;
       }
       setConfirmDeleteOpen(false);

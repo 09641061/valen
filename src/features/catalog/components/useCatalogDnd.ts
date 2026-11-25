@@ -41,7 +41,6 @@ interface UseCatalogDndOptions {
   categories: CategoryDto[];
   isFiltering: boolean;
   addOptimistic: (action: CatalogOptimisticAction) => void;
-  onStaleVersion: (message: string) => void;
   onError: (message: string | null) => void;
   onSuccess: () => void;
 }
@@ -50,7 +49,6 @@ export function useCatalogDnd({
   categories,
   isFiltering,
   addOptimistic,
-  onStaleVersion,
   onError,
   onSuccess,
 }: UseCatalogDndOptions) {
@@ -76,11 +74,7 @@ export function useCatalogDnd({
 
   function handleActionResult<T>(result: CatalogActionResult<T>) {
     if (!result.ok) {
-      if (result.code === "STALE_VERSION") {
-        onStaleVersion(result.message);
-      } else {
-        onError(result.message);
-      }
+      onError(result.message);
       return;
     }
     onSuccess();
@@ -155,7 +149,6 @@ export function useCatalogDnd({
       });
       const result = await moveCategoryAction({
         id: resolved.draggedCategory.id,
-        version: resolved.draggedCategory.version,
         sort_order: resolved.targetSortOrder,
       });
       handleActionResult(result);
@@ -197,7 +190,6 @@ export function useCatalogDnd({
       });
       const result = await moveServiceAction({
         id: originalService.id,
-        version: originalService.version,
         category_id: targetCategoryId,
         sort_order: targetSortOrder,
       });

@@ -104,7 +104,6 @@ export function AppointmentFormDialog({
       const result = appointment
         ? await updateAppointmentAction({
             id: appointment.id,
-            version: appointment.version,
             customer_id: customerId,
             service_id: serviceId,
             person_id: personId,

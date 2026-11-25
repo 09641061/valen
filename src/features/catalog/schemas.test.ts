@@ -22,7 +22,6 @@ const validServiceDto = {
   duration_minutes: 45,
   price_minor_units: 2500,
   sort_order: 1,
-  version: 1,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -53,15 +52,13 @@ describe("catalog category schemas", () => {
   );
 
   it.each([
-    { schema: UpdateCategorySchema, payload: { id: CAT_ID, version: 1, name: "Hair" }, valid: true },
-    { schema: UpdateCategorySchema, payload: { id: "bad", version: 1, name: "Hair" }, valid: false },
-    { schema: UpdateCategorySchema, payload: { id: CAT_ID, version: 0, name: "Hair" }, valid: false },
-    { schema: DeleteCategorySchema, payload: { id: CAT_ID, version: 2 }, valid: true },
-    { schema: DeleteCategorySchema, payload: { id: "bad", version: 2 }, valid: false },
-    { schema: DeleteCategorySchema, payload: { id: CAT_ID, version: 0 }, valid: false },
-    { schema: MoveCategorySchema, payload: { id: CAT_ID, version: 1, sort_order: 1 }, valid: true },
-    { schema: MoveCategorySchema, payload: { id: CAT_ID, version: 1, sort_order: 0 }, valid: false },
-    { schema: MoveCategorySchema, payload: { id: CAT_ID, version: 1, sort_order: 1.5 }, valid: false },
+    { schema: UpdateCategorySchema, payload: { id: CAT_ID, name: "Hair" }, valid: true },
+    { schema: UpdateCategorySchema, payload: { id: "bad", name: "Hair" }, valid: false },
+    { schema: DeleteCategorySchema, payload: { id: CAT_ID }, valid: true },
+    { schema: DeleteCategorySchema, payload: { id: "bad" }, valid: false },
+    { schema: MoveCategorySchema, payload: { id: CAT_ID, sort_order: 1 }, valid: true },
+    { schema: MoveCategorySchema, payload: { id: CAT_ID, sort_order: 0 }, valid: false },
+    { schema: MoveCategorySchema, payload: { id: CAT_ID, sort_order: 1.5 }, valid: false },
   ])("validates category mutation schema case %#", ({ schema, payload, valid }) => {
     expect(schema.safeParse(payload).success).toBe(valid);
   });
@@ -72,7 +69,6 @@ describe("catalog category schemas", () => {
         id: CAT_ID,
         name: "Hair",
         sort_order: 1,
-        version: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
         services: [validServiceDto],
@@ -129,7 +125,6 @@ describe("catalog service schemas", () => {
       schema: UpdateServiceSchema,
       payload: {
         id: SVC_ID,
-        version: 2,
         name: "Premium haircut",
         duration_minutes: 60,
         price_minor_units: 3500,
@@ -140,18 +135,17 @@ describe("catalog service schemas", () => {
       schema: UpdateServiceSchema,
       payload: {
         id: "invalid",
-        version: 2,
         name: "Premium haircut",
         duration_minutes: 60,
         price_minor_units: 3500,
       },
       valid: false,
     },
-    { schema: DeleteServiceSchema, payload: { id: SVC_ID, version: 0 }, valid: false },
-    { schema: DeleteServiceSchema, payload: { id: SVC_ID, version: 1 }, valid: true },
-    { schema: MoveServiceSchema, payload: { id: SVC_ID, version: 1, category_id: "bad", sort_order: 1 }, valid: false },
-    { schema: MoveServiceSchema, payload: { id: SVC_ID, version: 1, category_id: CAT_ID, sort_order: 0 }, valid: false },
-    { schema: MoveServiceSchema, payload: { id: SVC_ID, version: 1, category_id: CAT_ID, sort_order: 2 }, valid: true },
+    { schema: DeleteServiceSchema, payload: { id: "bad" }, valid: false },
+    { schema: DeleteServiceSchema, payload: { id: SVC_ID }, valid: true },
+    { schema: MoveServiceSchema, payload: { id: SVC_ID, category_id: "bad", sort_order: 1 }, valid: false },
+    { schema: MoveServiceSchema, payload: { id: SVC_ID, category_id: CAT_ID, sort_order: 0 }, valid: false },
+    { schema: MoveServiceSchema, payload: { id: SVC_ID, category_id: CAT_ID, sort_order: 2 }, valid: true },
   ])("validates service mutation schema case %#", ({ schema, payload, valid }) => {
     expect(schema.safeParse(payload).success).toBe(valid);
   });

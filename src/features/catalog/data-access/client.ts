@@ -4,7 +4,6 @@ import { cynthiaFetch as baseCynthiaFetch } from "@/lib/cynthia-client";
 
 export {
   CynthiaApiError as CatalogApiError,
-  formatIfMatchHeader,
   type ApiErrorCode as CatalogErrorCode,
   type ProblemDetails,
 } from "@/lib/cynthia-client";

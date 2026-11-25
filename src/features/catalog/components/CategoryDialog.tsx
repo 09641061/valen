@@ -13,13 +13,11 @@ import { Label } from "@/components/ui/label";
 import { createCategoryAction, updateCategoryAction } from "../actions";
 import { CreateCategorySchema, type CategoryDto } from "../schemas";
 import { CatalogFormFooter } from "./CatalogFormFooter";
-import { handleDialogActionFailure } from "./dialog-helpers";
 
 interface CategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category?: CategoryDto | null;
-  onStaleVersion: (message: string) => void;
   onSuccess: () => void;
 }
 
@@ -27,7 +25,6 @@ export function CategoryDialog({
   open,
   onOpenChange,
   category,
-  onStaleVersion,
   onSuccess,
 }: CategoryDialogProps) {
   const isEditing = Boolean(category);
@@ -49,15 +46,11 @@ export function CategoryDialog({
       const result = category
         ? await updateCategoryAction({
             id: category.id,
-            version: category.version,
             name: parsed.data.name,
           })
         : await createCategoryAction({ name: parsed.data.name });
 
       if (!result.ok) {
-        if (handleDialogActionFailure(result, onOpenChange, onStaleVersion)) {
-          return;
-        }
         setError(result.fieldErrors?.name?.[0] ?? result.message);
         return;
       }

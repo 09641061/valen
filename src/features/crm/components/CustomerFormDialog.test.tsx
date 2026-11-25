@@ -24,7 +24,6 @@ const EXISTING_CUSTOMER: CustomerDto = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Existing Alice",
   phone: "+573001234567",
-  version: 1,
   created_at: "2026-01-01T10:00:00Z",
   updated_at: "2026-01-01T10:00:00Z",
 };
@@ -42,7 +41,6 @@ const RECENT_CONVERSATION_OPTION = {
     customer_id: EXISTING_CUSTOMER.id,
     channel: "whatsapp" as const,
     status: "open" as const,
-    version: 1,
     created_at: "2026-01-01T10:00:00Z",
     updated_at: "2026-01-01T10:00:00Z",
   },

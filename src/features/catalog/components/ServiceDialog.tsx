@@ -17,7 +17,6 @@ import { CreateServiceSchema, type ServiceDto } from "../schemas";
 import { CatalogFormFooter } from "./CatalogFormFooter";
 import {
   extractZodFieldErrors,
-  handleDialogActionFailure,
   mapActionFieldErrors,
 } from "./dialog-helpers";
 import { ServiceFormFields } from "./ServiceFormFields";
@@ -28,7 +27,6 @@ interface ServiceDialogProps {
   categoryId: string;
   service?: ServiceDto | null;
   currencyCode?: string;
-  onStaleVersion: (message: string) => void;
   onSuccess: () => void;
 }
 
@@ -53,7 +51,6 @@ export function ServiceDialog({
   categoryId,
   service,
   currencyCode = "USD",
-  onStaleVersion,
   onSuccess,
 }: ServiceDialogProps) {
   const isEditing = Boolean(service);
@@ -97,7 +94,6 @@ export function ServiceDialog({
       const result = service
         ? await updateServiceAction({
             id: service.id,
-            version: service.version,
             name: parsed.data.name,
             duration_minutes: parsed.data.duration_minutes,
             price_minor_units: parsed.data.price_minor_units,
@@ -105,9 +101,6 @@ export function ServiceDialog({
         : await createServiceAction(parsed.data);
 
       if (!result.ok) {
-        if (handleDialogActionFailure(result, onOpenChange, onStaleVersion)) {
-          return;
-        }
         if (result.fieldErrors) {
           setFieldErrors(mapActionFieldErrors(result.fieldErrors));
         }
