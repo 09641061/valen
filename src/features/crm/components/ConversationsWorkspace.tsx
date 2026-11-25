@@ -133,7 +133,7 @@ export function ConversationsWorkspace({
         </p>
       </div>
 
-      <div className="grid min-h-[620px] gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+      <div className="grid h-[calc(100vh-12rem)] min-h-[520px] gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         <ConversationList
           conversations={conversations}
           selectedId={activeConversationId}
@@ -156,7 +156,7 @@ export function ConversationsWorkspace({
           }}
         />
 
-        <section className="flex flex-col overflow-hidden rounded-xl border bg-card">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card">
           {selectedConversation ? (
             <>
               <ConversationThreadHeader
@@ -178,7 +178,7 @@ export function ConversationsWorkspace({
                 </div>
               ) : null}
 
-              <div className="min-h-0 flex-1 p-4">
+              <div className="flex min-h-0 flex-1 flex-col p-4">
                 <MessageThread
                   messages={initialMessages}
                   isClosed={isClosed}
