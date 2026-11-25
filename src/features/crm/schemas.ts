@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const E164_PHONE_REGEX = /^\+[1-9][0-9]{6,14}$/;
+export const E164_PHONE_REGEX = /^\+[1-9][0-9]{6,14}$/;
 
 const PhoneSchema = z
   .string()

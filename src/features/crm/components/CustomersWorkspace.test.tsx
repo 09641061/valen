@@ -1,22 +1,33 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CustomerDto, CustomerPageDto } from "../schemas";
 import { CustomersWorkspace } from "./CustomersWorkspace";
 
-const { replaceMock, refreshMock, deleteCustomerActionMock } = vi.hoisted(
-  () => ({
+const { replaceMock, refreshMock, deleteCustomerActionMock, transitionState } =
+  vi.hoisted(() => ({
     replaceMock: vi.fn(),
     refreshMock: vi.fn(),
     deleteCustomerActionMock: vi.fn(),
-  }),
-);
+    transitionState: { holdSearchPending: false },
+  }));
+
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  return {
+    ...actual,
+    useTransition: () => {
+      const [pending, start] = actual.useTransition();
+      return [
+        transitionState.holdSearchPending ? true : pending,
+        start,
+      ] as const;
+    },
+  };
+});
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-    refresh: refreshMock,
-  }),
+  useRouter: () => ({ replace: replaceMock, refresh: refreshMock }),
 }));
 
 vi.mock("../actions", () => ({
@@ -47,30 +58,37 @@ const CUSTOMERS: CustomerDto[] = [
   },
 ];
 
-const PAGE: CustomerPageDto = {
-  items: CUSTOMERS,
-  total: 25,
-  page: 1,
-  page_size: 20,
-};
+const PAGE: CustomerPageDto = { items: CUSTOMERS, total: 25, page: 1, page_size: 20 };
+
+function renderWorkspace(initialQuery = "") {
+  return render(
+    <CustomersWorkspace
+      customerPage={PAGE}
+      initialQuery={initialQuery}
+      initialSelectedCustomer={CUSTOMERS[0]}
+    />,
+  );
+}
+
+function setupFakeTimerUser() {
+  vi.stubGlobal("jest", vi);
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  return userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) });
+}
 
 describe("CustomersWorkspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    transitionState.holdSearchPending = false;
   });
 
   afterEach(() => {
-    cleanup();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("renders Customers heading, table rows, and selected customer detail pane", () => {
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+    renderWorkspace();
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Customers" }),
@@ -80,35 +98,45 @@ describe("CustomersWorkspace", () => {
     expect(screen.getByText("Page 1 of 2")).toBeTruthy();
   });
 
-  it("updates URL searchParams on search and pagination", async () => {
-    const user = userEvent.setup();
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+  it("debounces live search and updates pagination URL", async () => {
+    const user = setupFakeTimerUser();
+    renderWorkspace("");
 
-    const searchInput = screen.getByLabelText("Search by name or phone");
-    await user.type(searchInput, "Bob");
-    await user.click(screen.getByRole("button", { name: "Search" }));
-    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob");
+    await user.type(screen.getByLabelText("Search by name or phone"), "Bob");
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob", {
+      scroll: false,
+    });
 
     await user.click(screen.getByRole("button", { name: "Next" }));
-    expect(replaceMock).toHaveBeenCalledWith("/customers?page=2");
+    expect(replaceMock).toHaveBeenCalledWith("/customers?page=2", {
+      scroll: false,
+    });
+  });
+
+  it("allows Clean to reset URL while an earlier search is still in flight", async () => {
+    transitionState.holdSearchPending = true;
+    const user = setupFakeTimerUser();
+    renderWorkspace("");
+
+    await user.type(
+      screen.getByLabelText("Search by name or phone"),
+      "Ana{Enter}",
+    );
+    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Ana", {
+      scroll: false,
+    });
+
+    await user.click(screen.getByRole("button", { name: "Clean" }));
+    expect(replaceMock).toHaveBeenCalledWith("/customers", { scroll: false });
   });
 
   it("confirms and deletes a customer", async () => {
     deleteCustomerActionMock.mockResolvedValueOnce({ ok: true, data: null });
     const user = userEvent.setup();
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+    renderWorkspace("");
 
     await user.click(screen.getByRole("button", { name: "Delete" }));
     const confirmButtons = screen.getAllByRole("button", { name: "Delete" });
@@ -122,15 +150,11 @@ describe("CustomersWorkspace", () => {
 
   it("opens edit dialog from the row Actions dropdown menu", async () => {
     const user = userEvent.setup();
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+    renderWorkspace("");
 
-    await user.click(screen.getByRole("button", { name: "Actions for Bob Jones" }));
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Bob Jones" }),
+    );
     await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
 
     expect(
