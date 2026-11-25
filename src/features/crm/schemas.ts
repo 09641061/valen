@@ -100,6 +100,22 @@ export const DeleteCustomerSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const SendMessageSchema = z.object({
+  conversationId: z.string().uuid(),
+  idempotencyKey: z.string().trim().min(1, "Idempotency key is required").max(128),
+  content: z
+    .string()
+    .trim()
+    .min(1, "Message cannot be empty")
+    .max(4096, "Message must be 4096 characters or fewer"),
+});
+
+export const UpdateConversationStatusSchema = z.object({
+  conversationId: z.string().uuid(),
+  version: z.number().int().min(1),
+  status: ConversationStatusSchema,
+});
+
 export type CustomerDto = z.infer<typeof CustomerSchema>;
 export type CustomerPageDto = z.infer<typeof CustomerPageSchema>;
 export type ConversationDto = z.infer<typeof ConversationSchema>;
@@ -108,3 +124,12 @@ export type MessageDto = z.infer<typeof MessageSchema>;
 export type CreateCustomerInput = z.input<typeof CreateCustomerSchema>;
 export type UpdateCustomerInput = z.input<typeof UpdateCustomerSchema>;
 export type DeleteCustomerInput = z.input<typeof DeleteCustomerSchema>;
+export type SendMessageInput = z.input<typeof SendMessageSchema>;
+export type UpdateConversationStatusInput = z.input<
+  typeof UpdateConversationStatusSchema
+>;
+
+export interface HydratedConversation {
+  conversation: ConversationDto;
+  customer: CustomerDto | null;
+}

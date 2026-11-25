@@ -89,6 +89,9 @@ export const OrganizationSchema = z.object({
   timezone: z.string(),
   business_hours: BusinessHoursSchema,
   ai_instructions: z.string(),
+  whatsapp_phone_number: z.string().default(""),
+  whatsapp_phone_number_id: z.string().default(""),
+  whatsapp_enabled: z.boolean().default(false),
   version: z.number().int().positive(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -156,4 +159,60 @@ export const UpdateAiInstructionsSchema = z.object({
 
 export type UpdateAiInstructionsInput = z.infer<
   typeof UpdateAiInstructionsSchema
+>;
+
+const WHATSAPP_E164_REGEX = /^\+[1-9][0-9]{6,14}$/;
+const WHATSAPP_PHONE_ID_REGEX = /^[0-9]+$/;
+
+export const UpdateWhatsAppConfigSchema = z
+  .object({
+    version: z.number().int().positive(),
+    whatsapp_enabled: z.boolean(),
+    whatsapp_phone_number: z
+      .string()
+      .trim()
+      .transform((value) => value.replace(/[\s\-()]/g, "")),
+    whatsapp_phone_number_id: z.string().trim(),
+  })
+  .superRefine((val, ctx) => {
+    if (
+      val.whatsapp_phone_number.length > 0 &&
+      !WHATSAPP_E164_REGEX.test(val.whatsapp_phone_number)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["whatsapp_phone_number"],
+        message: "Enter a valid E.164 phone number starting with +",
+      });
+    }
+    if (
+      val.whatsapp_phone_number_id.length > 0 &&
+      !WHATSAPP_PHONE_ID_REGEX.test(val.whatsapp_phone_number_id)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["whatsapp_phone_number_id"],
+        message: "Phone Number ID must contain digits only",
+      });
+    }
+    if (val.whatsapp_enabled) {
+      if (val.whatsapp_phone_number.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["whatsapp_phone_number"],
+          message: "WhatsApp number is required when enabled",
+        });
+      }
+      if (val.whatsapp_phone_number_id.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["whatsapp_phone_number_id"],
+          message: "Phone Number ID is required when enabled",
+        });
+      }
+    }
+  });
+
+export type UpdateWhatsAppConfigInput = z.input<
+  typeof UpdateWhatsAppConfigSchema
 >;

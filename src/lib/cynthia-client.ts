@@ -151,7 +151,9 @@ export async function cynthiaFetch(
   const url = new URL(path, CYNTHIA_API_URL).toString();
 
   const headers = new Headers(init.headers);
-  headers.set("Accept", "application/json, application/problem+json");
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json, application/problem+json");
+  }
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

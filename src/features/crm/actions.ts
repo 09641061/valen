@@ -8,10 +8,13 @@ import {
   deleteCustomer,
   fetchConversationMessages,
   fetchConversations,
-  fetchCustomer,
   updateCustomer,
   type CrmErrorCode,
 } from "./data-access";
+import {
+  hydrateConversationsWithCustomers,
+  type HydratedConversation,
+} from "./loaders";
 import {
   CreateCustomerSchema,
   CustomerSchema,
@@ -35,10 +38,7 @@ export type CrmActionResult<T> =
       existingCustomer?: CustomerDto;
     };
 
-export interface RecentConversationOption {
-  conversation: ConversationDto;
-  customer: CustomerDto | null;
-}
+export type RecentConversationOption = HydratedConversation;
 
 function toActionError<T>(error: unknown): CrmActionResult<T> {
   if (error instanceof ZodError) {
@@ -156,25 +156,7 @@ export async function loadRecentConversationsAction(): Promise<
       page: 1,
       pageSize: 20,
     });
-    const uniqueCustomerIds = Array.from(
-      new Set(page.items.map((c) => c.customer_id)),
-    );
-    const customerEntries = await Promise.all(
-      uniqueCustomerIds.map(async (id) => {
-        try {
-          return [id, await fetchCustomer(id)] as const;
-        } catch {
-          return [id, null] as const;
-        }
-      }),
-    );
-    const customerMap = new Map<string, CustomerDto | null>(customerEntries);
-    const options: RecentConversationOption[] = page.items.map(
-      (conversation) => ({
-        conversation,
-        customer: customerMap.get(conversation.customer_id) ?? null,
-      }),
-    );
+    const options = await hydrateConversationsWithCustomers(page.items);
     return { ok: true, data: options };
   } catch (error) {
     return toActionError(error);
