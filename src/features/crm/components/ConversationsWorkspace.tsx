@@ -85,8 +85,10 @@ export function ConversationsWorkspace({
     handleProfileOpenChange,
   } = useCustomerProfileState(selectedCustomer);
 
+  const isMutating = isUpdatingStatus || isUpdatingAi;
+
   function handleToggleStatus() {
-    if (!selectedConversation || isUpdatingStatus) return;
+    if (!selectedConversation || isMutating) return;
     setStatusError(null);
     const nextStatus = selectedConversation.status === "open" ? "closed" : "open";
 
@@ -105,7 +107,7 @@ export function ConversationsWorkspace({
   }
 
   function handleResumeAi() {
-    if (!selectedConversation || isUpdatingAi) return;
+    if (!selectedConversation || isMutating) return;
     setStatusError(null);
 
     startAiTransition(async () => {
@@ -138,17 +140,20 @@ export function ConversationsWorkspace({
           searchQuery={searchQuery}
           statusFilter={initialStatus}
           onSearchChange={setSearchQuery}
-          onSearchSubmit={() =>
-            router.push(buildInboxUrl(searchQuery.trim(), initialStatus, null))
-          }
-          onStatusChange={(status) =>
-            router.push(buildInboxUrl(searchQuery.trim(), status, null))
-          }
-          onSelect={(conversationId) =>
+          onSearchSubmit={() => {
+            setStatusError(null);
+            router.push(buildInboxUrl(searchQuery.trim(), initialStatus, null));
+          }}
+          onStatusChange={(status) => {
+            setStatusError(null);
+            router.push(buildInboxUrl(searchQuery.trim(), status, null));
+          }}
+          onSelect={(conversationId) => {
+            setStatusError(null);
             router.push(
               buildInboxUrl(searchQuery.trim(), initialStatus, conversationId),
-            )
-          }
+            );
+          }}
         />
 
         <section className="flex flex-col overflow-hidden rounded-xl border bg-card">
@@ -157,8 +162,8 @@ export function ConversationsWorkspace({
               <ConversationThreadHeader
                 conversation={selectedConversation}
                 customer={selectedCustomer}
-                isUpdatingStatus={isUpdatingStatus}
-                isUpdatingAi={isUpdatingAi}
+                isUpdatingStatus={isMutating}
+                isUpdatingAi={isMutating}
                 onOpenProfile={handleOpenProfile}
                 onToggleStatus={handleToggleStatus}
                 onResumeAi={handleResumeAi}

@@ -194,5 +194,31 @@ describe("conversation actions", () => {
       }
       expect(updateConversationAi).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ["STALE_VERSION", 412, "Conversation was updated by another user."],
+      ["CONFLICT", 409, "Cannot resume AI on a closed conversation."],
+    ] as const)(
+      "propagates %s CrmApiError to typed result",
+      async (code, status, message) => {
+        vi.mocked(updateConversationAi).mockRejectedValueOnce(
+          new CrmApiError(code, message, status),
+        );
+
+        const result = await updateConversationAiAction({
+          conversationId: CONVERSATION_ID,
+          version: 3,
+          aiPaused: false,
+        });
+
+        expect(result).toEqual({
+          ok: false,
+          code,
+          message,
+          fieldErrors: undefined,
+        });
+        expect(revalidatePathMock).not.toHaveBeenCalled();
+      },
+    );
   });
 });

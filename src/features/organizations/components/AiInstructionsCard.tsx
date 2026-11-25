@@ -72,6 +72,8 @@ export function AiInstructionsCard({
     });
   }
 
+  const showWhatsappNote = aiEnabled && !organization.whatsapp_enabled;
+
   return (
     <OrganizationFormCard
       title="Takodu Assistant"
@@ -89,14 +91,20 @@ export function AiInstructionsCard({
           <Switch
             id="ai-enabled"
             checked={aiEnabled}
+            aria-describedby={
+              showWhatsappNote ? "ai-enabled-whatsapp-note" : undefined
+            }
             onCheckedChange={(checked) => {
               setAiEnabled(checked);
               setSavedMessage(null);
             }}
           />
         </div>
-        {aiEnabled && !organization.whatsapp_enabled ? (
-          <p className="text-xs text-muted-foreground">
+        {showWhatsappNote ? (
+          <p
+            id="ai-enabled-whatsapp-note"
+            className="text-xs text-muted-foreground"
+          >
             Connect and enable WhatsApp above to start sending automatic
             replies.
           </p>

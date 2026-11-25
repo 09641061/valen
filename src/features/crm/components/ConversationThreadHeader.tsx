@@ -16,6 +16,17 @@ interface ConversationThreadHeaderProps {
   onResumeAi: () => void;
 }
 
+const HANDOFF_REASON_LABELS: Record<string, string> = {
+  staff_replied: "Staff replied",
+  manual_pause: "Manual pause",
+  max_tool_rounds_exceeded: "Assistant handed off",
+  assistant_delivery_failed: "Delivery failed",
+};
+
+function formatHandoffReason(reason: string): string {
+  return HANDOFF_REASON_LABELS[reason] ?? reason;
+}
+
 function ConversationHeaderMeta({
   conversation,
   customer,
@@ -25,6 +36,10 @@ function ConversationHeaderMeta({
   customer: CustomerDto | null;
   isClosed: boolean;
 }) {
+  const formattedReason = conversation.handoff_reason
+    ? formatHandoffReason(conversation.handoff_reason)
+    : undefined;
+
   return (
     <div className="flex min-w-0 items-center gap-3">
       <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
@@ -42,10 +57,7 @@ function ConversationHeaderMeta({
             {conversation.status}
           </Badge>
           {conversation.ai_paused ? (
-            <Badge
-              variant="outline"
-              title={conversation.handoff_reason || undefined}
-            >
+            <Badge variant="outline" title={formattedReason}>
               AI paused
             </Badge>
           ) : null}
@@ -56,9 +68,9 @@ function ConversationHeaderMeta({
             {customer.phone}
           </p>
         ) : null}
-        {conversation.ai_paused && conversation.handoff_reason ? (
+        {conversation.ai_paused && formattedReason ? (
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            Handoff reason: {conversation.handoff_reason}
+            Handoff reason: {formattedReason}
           </p>
         ) : null}
       </div>
@@ -86,7 +98,7 @@ export function ConversationThreadHeader({
         isClosed={isClosed}
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {canResumeAi ? (
           <Button
             type="button"
@@ -95,7 +107,7 @@ export function ConversationThreadHeader({
             disabled={isUpdatingAi}
             onClick={onResumeAi}
           >
-            Resume AI
+            {isUpdatingAi ? "Resuming..." : "Resume AI"}
           </Button>
         ) : null}
         {customer ? (
