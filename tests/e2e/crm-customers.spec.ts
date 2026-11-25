@@ -30,13 +30,15 @@ test.describe("CRM customers against live Cynthia backend", () => {
     }
   });
 
-  test("full CRUD and duplicate-phone conflict flow on /customers", async ({
+  test("full CRUD, live search, Clean button, and duplicate-phone conflict flow on /customers", async ({
     page,
   }) => {
     test.setTimeout(60_000);
 
     const suffix = String(Date.now()).slice(-8);
-    const phone = `+5255${suffix}`;
+    const countryCode = "+52";
+    const localNumber = `55${suffix}`;
+    const phone = `${countryCode}${localNumber}`;
     const customerName = `Customer E2E ${suffix}`;
     const updatedName = `Customer Edited ${suffix}`;
     createdPhones.push(phone);
@@ -48,36 +50,40 @@ test.describe("CRM customers against live Cynthia backend", () => {
       page.getByRole("heading", { level: 1, name: "Customers" }),
     ).toBeVisible();
 
-    // Create customer
+    // Create customer with split phone inputs
     await page.getByRole("button", { name: "Add customer" }).click();
     const createDialog = page.getByRole("dialog", { name: "Add customer" });
     await expect(createDialog).toBeVisible();
     await createDialog.getByLabel("Name").fill(customerName);
-    await createDialog.getByLabel("Phone").fill(phone);
+    await createDialog.getByLabel("Country code").fill(countryCode);
+    await createDialog.getByLabel("Phone number").fill(localNumber);
     await createDialog.getByRole("button", { name: "Add customer" }).click();
     await expect(createDialog).toBeHidden();
     await expect(page.getByText(customerName).first()).toBeVisible();
 
-    // Reload and verify persistence + search by name/phone
+    // Reload and verify live search by phone (no Search button) + Clean button
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(
       page.getByRole("heading", { level: 1, name: "Customers" }),
     ).toBeVisible();
 
-    const searchBox = page.getByRole("searchbox", {
-      name: "Search by name or phone",
-    });
-    await searchBox.fill(phone);
-    await page.getByRole("button", { name: "Search" }).click();
+    const searchInput = page.getByLabel("Search by name or phone");
+    await searchInput.fill(phone);
+    await expect(page).toHaveURL(new RegExp(`q=${encodeURIComponent(phone)}`));
     await expect(page.getByText(customerName).first()).toBeVisible();
     await expect(page.getByText(phone).first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Clean" }).click();
+    await expect(searchInput).toHaveValue("");
+    await expect(page).toHaveURL(/\/customers$/);
 
     // Duplicate phone creation triggers 409 existing_customer conflict banner
     await page.getByRole("button", { name: "Add customer" }).click();
     const dupDialog = page.getByRole("dialog", { name: "Add customer" });
     await expect(dupDialog).toBeVisible();
     await dupDialog.getByLabel("Name").fill(`Duplicate ${suffix}`);
-    await dupDialog.getByLabel("Phone").fill(phone);
+    await dupDialog.getByLabel("Country code").fill(countryCode);
+    await dupDialog.getByLabel("Phone number").fill(localNumber);
     await dupDialog.getByRole("button", { name: "Add customer" }).click();
 
     await expect(
@@ -89,13 +95,22 @@ test.describe("CRM customers against live Cynthia backend", () => {
     await dupDialog.getByRole("button", { name: "Cancel" }).click();
     await expect(dupDialog).toBeHidden();
 
-    // Edit customer
+    // Multi-word search guarantees target row is visible before Edit/Delete
+    await searchInput.fill(`Customer ${suffix}`);
+    await expect(page).toHaveURL(
+      new RegExp(`q=Customer\\+${suffix}|q=Customer%20${suffix}`),
+    );
+    await expect(page.getByText(customerName).first()).toBeVisible();
+
+    // Edit customer and verify split phone fields are pre-populated
     await page
       .getByRole("button", { name: `Actions for ${customerName}` })
       .click();
     await page.getByRole("menuitem", { name: "Edit" }).click();
     const editDialog = page.getByRole("dialog", { name: "Edit customer" });
     await expect(editDialog).toBeVisible();
+    await expect(editDialog.getByLabel("Country code")).toHaveValue(countryCode);
+    await expect(editDialog.getByLabel("Phone number")).toHaveValue(localNumber);
     await editDialog.getByLabel("Name").fill(updatedName);
     await editDialog.getByRole("button", { name: "Save changes" }).click();
     await expect(editDialog).toBeHidden();

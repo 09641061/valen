@@ -4,17 +4,13 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { deleteCustomerAction } from "../actions";
 import {
-  deleteCustomerAction,
-  loadConversationMessagesAction,
-  loadCustomerConversationsAction,
-} from "../actions";
-import type {
-  ConversationDto,
-  CustomerDto,
-  CustomerPageDto,
-  MessageDto,
-} from "../schemas";
+  buildCustomersUrl,
+  fetchProfileData,
+  type ProfileState,
+} from "../customers-workspace-helpers";
+import type { CustomerDto, CustomerPageDto } from "../schemas";
 import { CustomerDetailPanel } from "./CustomerDetailPanel";
 import { CustomerFormDialog } from "./CustomerFormDialog";
 import { CustomerProfileDialog } from "./CustomerProfileDialog";
@@ -25,59 +21,6 @@ interface CustomersWorkspaceProps {
   customerPage: CustomerPageDto;
   initialQuery: string;
   initialSelectedCustomer: CustomerDto | null;
-}
-
-interface ProfileState {
-  customer: CustomerDto;
-  conversations: ConversationDto[];
-  initialMessages: MessageDto[];
-  initialConversationId: string | null;
-  error: string | null;
-}
-
-function buildCustomersUrl(
-  baseQuery: string,
-  basePage: number,
-  next: { q?: string; page?: number; customerId?: string },
-): string {
-  const params = new URLSearchParams();
-  const q = next.q !== undefined ? next.q : baseQuery;
-  const page = next.page !== undefined ? next.page : basePage;
-  if (q) params.set("q", q);
-  if (page > 1) params.set("page", String(page));
-  if (next.customerId) params.set("customerId", next.customerId);
-  const qs = params.toString();
-  return qs ? `/customers?${qs}` : "/customers";
-}
-
-async function fetchProfileData(customer: CustomerDto): Promise<ProfileState> {
-  const convResult = await loadCustomerConversationsAction(customer.id);
-  if (!convResult.ok) {
-    return {
-      customer,
-      conversations: [],
-      initialMessages: [],
-      initialConversationId: null,
-      error: convResult.message,
-    };
-  }
-  const conversations = convResult.data;
-  const first =
-    conversations.find((c) => c.status === "open") ?? conversations[0] ?? null;
-  let initialMessages: MessageDto[] = [];
-  let error: string | null = null;
-  if (first) {
-    const msgResult = await loadConversationMessagesAction(first.id);
-    if (msgResult.ok) initialMessages = msgResult.data;
-    else error = msgResult.message;
-  }
-  return {
-    customer,
-    conversations,
-    initialMessages,
-    initialConversationId: first?.id ?? null,
-    error,
-  };
 }
 
 export function CustomersWorkspace({
@@ -96,11 +39,21 @@ export function CustomersWorkspace({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [profileState, setProfileState] = useState<ProfileState | null>(null);
   const profileReqRef = useRef(0);
+  const [isSearching, startSearchTransition] = useTransition();
   const [isLoadingProfile, startProfileTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
 
   function updateUrl(next: { q?: string; page?: number; customerId?: string }) {
-    router.replace(buildCustomersUrl(initialQuery, customerPage.page, next));
+    startSearchTransition(() => {
+      router.replace(buildCustomersUrl(initialQuery, customerPage.page, next), {
+        scroll: false,
+      });
+    });
+  }
+
+  function handleSearchChange(q: string) {
+    if (q === initialQuery) return;
+    updateUrl({ q, page: 1, customerId: undefined });
   }
 
   function handleOpenProfile(customer: CustomerDto) {
@@ -166,14 +119,14 @@ export function CustomersWorkspace({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <CustomersTable
-          key={`${initialQuery}-${customerPage.page}`}
           customers={customerPage.items}
           selectedCustomerId={initialSelectedCustomer?.id ?? null}
           searchQuery={initialQuery}
           page={customerPage.page}
           pageSize={customerPage.page_size}
           total={customerPage.total}
-          onSearchSubmit={(q) => updateUrl({ q, page: 1, customerId: undefined })}
+          isSearching={isSearching}
+          onSearchChange={handleSearchChange}
           onPageChange={(page) => updateUrl({ page, customerId: undefined })}
           onSelectCustomer={(c) => updateUrl({ customerId: c.id })}
           onViewProfile={handleOpenProfile}

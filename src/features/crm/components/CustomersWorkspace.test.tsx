@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CustomerDto, CustomerPageDto } from "../schemas";
@@ -54,6 +54,24 @@ const PAGE: CustomerPageDto = {
   page_size: 20,
 };
 
+function renderWorkspace(initialQuery = "") {
+  return render(
+    <CustomersWorkspace
+      customerPage={PAGE}
+      initialQuery={initialQuery}
+      initialSelectedCustomer={CUSTOMERS[0]}
+    />,
+  );
+}
+
+function setupFakeTimerUser() {
+  vi.stubGlobal("jest", vi);
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  return userEvent.setup({
+    advanceTimers: (ms) => vi.advanceTimersByTime(ms),
+  });
+}
+
 describe("CustomersWorkspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,16 +79,12 @@ describe("CustomersWorkspace", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("renders Customers heading, table rows, and selected customer detail pane", () => {
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+    renderWorkspace();
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Customers" }),
@@ -80,35 +94,133 @@ describe("CustomersWorkspace", () => {
     expect(screen.getByText("Page 1 of 2")).toBeTruthy();
   });
 
-  it("updates URL searchParams on search and pagination", async () => {
-    const user = userEvent.setup();
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+  it("renders text search input without inline clear button and toggles Clean disabled state", async () => {
+    const user = setupFakeTimerUser();
+    renderWorkspace("");
+
+    const searchInput = screen.getByLabelText(
+      "Search by name or phone",
+    ) as HTMLInputElement;
+    expect(searchInput.type).toBe("text");
+    expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
+    expect(searchInput.parentElement?.querySelector("button")).toBeNull();
+
+    const cleanButton = screen.getByRole("button", {
+      name: "Clean",
+    }) as HTMLButtonElement;
+    expect(cleanButton.disabled).toBe(true);
+
+    await user.type(searchInput, "Bob");
+    expect(cleanButton.disabled).toBe(false);
+  });
+
+  it("debounces live search for 300ms and updates pagination URL", async () => {
+    const user = setupFakeTimerUser();
+    renderWorkspace("");
 
     const searchInput = screen.getByLabelText("Search by name or phone");
     await user.type(searchInput, "Bob");
-    await user.click(screen.getByRole("button", { name: "Search" }));
-    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob");
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(299);
+    });
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob", {
+      scroll: false,
+    });
 
     await user.click(screen.getByRole("button", { name: "Next" }));
-    expect(replaceMock).toHaveBeenCalledWith("/customers?page=2");
+    expect(replaceMock).toHaveBeenCalledWith("/customers?page=2", {
+      scroll: false,
+    });
+  });
+
+  it("preserves trailing space, keeps focus, and ignores stale RSC sync while typing", async () => {
+    const user = setupFakeTimerUser();
+    const { rerender } = renderWorkspace("");
+
+    const searchInput = screen.getByLabelText(
+      "Search by name or phone",
+    ) as HTMLInputElement;
+    await user.type(searchInput, "Ana ");
+    expect(searchInput.value).toBe("Ana ");
+    expect(document.activeElement).toBe(searchInput);
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Ana", {
+      scroll: false,
+    });
+
+    await user.type(searchInput, "Maria");
+    expect(searchInput.value).toBe("Ana Maria");
+
+    rerender(
+      <CustomersWorkspace
+        customerPage={PAGE}
+        initialQuery="Ana"
+        initialSelectedCustomer={CUSTOMERS[0]}
+      />,
+    );
+    expect(searchInput.value).toBe("Ana Maria");
+    expect(document.activeElement).toBe(searchInput);
+  });
+
+  it("clears input immediately on Clean, cancels pending debounce, and keeps focus", async () => {
+    const user = setupFakeTimerUser();
+    renderWorkspace("Alice");
+
+    const searchInput = screen.getByLabelText(
+      "Search by name or phone",
+    ) as HTMLInputElement;
+    await user.clear(searchInput);
+    await user.type(searchInput, "Bob");
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Clean" }));
+    expect(searchInput.value).toBe("");
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    expect(replaceMock).toHaveBeenCalledWith("/customers", { scroll: false });
+    expect(document.activeElement).toBe(searchInput);
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    expect(replaceMock).not.toHaveBeenCalledWith("/customers?q=Bob", {
+      scroll: false,
+    });
+  });
+
+  it("flushes immediately on Enter without double-firing after 300ms", async () => {
+    const user = setupFakeTimerUser();
+    renderWorkspace("");
+
+    const searchInput = screen.getByLabelText("Search by name or phone");
+    await user.type(searchInput, "Bob{Enter}");
+
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    expect(replaceMock).toHaveBeenCalledWith("/customers?q=Bob", {
+      scroll: false,
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(replaceMock).toHaveBeenCalledTimes(1);
   });
 
   it("confirms and deletes a customer", async () => {
     deleteCustomerActionMock.mockResolvedValueOnce({ ok: true, data: null });
     const user = userEvent.setup();
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+    renderWorkspace("");
 
     await user.click(screen.getByRole("button", { name: "Delete" }));
     const confirmButtons = screen.getAllByRole("button", { name: "Delete" });
@@ -122,15 +234,11 @@ describe("CustomersWorkspace", () => {
 
   it("opens edit dialog from the row Actions dropdown menu", async () => {
     const user = userEvent.setup();
-    render(
-      <CustomersWorkspace
-        customerPage={PAGE}
-        initialQuery=""
-        initialSelectedCustomer={CUSTOMERS[0]}
-      />,
-    );
+    renderWorkspace("");
 
-    await user.click(screen.getByRole("button", { name: "Actions for Bob Jones" }));
+    await user.click(
+      screen.getByRole("button", { name: "Actions for Bob Jones" }),
+    );
     await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
 
     expect(
