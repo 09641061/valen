@@ -7,6 +7,7 @@ import type { OrganizationDto } from "../schemas";
 import { AiInstructionsCard } from "./AiInstructionsCard";
 import { BusinessDetailsCard } from "./BusinessDetailsCard";
 import { BusinessHoursCard } from "./BusinessHoursCard";
+import { WhatsAppIntegrationCard } from "./WhatsAppIntegrationCard";
 
 interface OrganizationProfileWorkspaceProps {
   initialOrganization: OrganizationDto;
@@ -60,11 +61,18 @@ export function OrganizationProfileWorkspace({
           />
         </div>
 
-        <AiInstructionsCard
-          organization={organization}
-          onUpdated={handleUpdated}
-          onStaleVersion={setStaleMessage}
-        />
+        <div className="flex flex-col gap-6">
+          <WhatsAppIntegrationCard
+            organization={organization}
+            onUpdated={handleUpdated}
+            onStaleVersion={setStaleMessage}
+          />
+          <AiInstructionsCard
+            organization={organization}
+            onUpdated={handleUpdated}
+            onStaleVersion={setStaleMessage}
+          />
+        </div>
       </div>
     </div>
   );

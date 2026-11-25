@@ -6,6 +6,7 @@ import {
   UpdateAiInstructionsSchema,
   UpdateBusinessDetailsSchema,
   UpdateBusinessHoursSchema,
+  UpdateWhatsAppConfigSchema,
 } from "./schemas";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
@@ -145,5 +146,41 @@ describe("organizations DTO and update schemas", () => {
         ai_instructions: "a".repeat(4001),
       }).success,
     ).toBe(false);
+  });
+
+  it("validates UpdateWhatsAppConfigSchema rules and normalization", () => {
+    const enabled = UpdateWhatsAppConfigSchema.safeParse({
+      version: 1,
+      whatsapp_enabled: true,
+      whatsapp_phone_number: " +51 994-356-103 ",
+      whatsapp_phone_number_id: " 106540352242922 ",
+    });
+    expect(enabled.success).toBe(true);
+    if (enabled.success) {
+      expect(enabled.data.whatsapp_phone_number).toBe("+51994356103");
+      expect(enabled.data.whatsapp_phone_number_id).toBe("106540352242922");
+    }
+
+    expect(
+      UpdateWhatsAppConfigSchema.safeParse({
+        version: 1,
+        whatsapp_enabled: false,
+        whatsapp_phone_number: "",
+        whatsapp_phone_number_id: "",
+      }).success,
+    ).toBe(true);
+
+    const invalidCases = [
+      { whatsapp_enabled: true, whatsapp_phone_number: "", whatsapp_phone_number_id: "123" },
+      { whatsapp_enabled: true, whatsapp_phone_number: "+51994356103", whatsapp_phone_number_id: "" },
+      { whatsapp_enabled: false, whatsapp_phone_number: "51994356103", whatsapp_phone_number_id: "" },
+      { whatsapp_enabled: false, whatsapp_phone_number: "", whatsapp_phone_number_id: "abc123" },
+      { whatsapp_enabled: false, whatsapp_phone_number: "", whatsapp_phone_number_id: "1".repeat(65) },
+    ];
+    for (const payload of invalidCases) {
+      expect(
+        UpdateWhatsAppConfigSchema.safeParse({ version: 1, ...payload }).success,
+      ).toBe(false);
+    }
   });
 });

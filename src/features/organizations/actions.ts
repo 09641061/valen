@@ -11,10 +11,12 @@ import {
   UpdateAiInstructionsSchema,
   UpdateBusinessDetailsSchema,
   UpdateBusinessHoursSchema,
+  UpdateWhatsAppConfigSchema,
   type OrganizationDto,
   type UpdateAiInstructionsInput,
   type UpdateBusinessDetailsInput,
   type UpdateBusinessHoursInput,
+  type UpdateWhatsAppConfigInput,
 } from "./schemas";
 
 export type OrganizationActionResult<T> =
@@ -88,6 +90,19 @@ export async function updateAiInstructionsAction(
     const { version, ai_instructions } =
       UpdateAiInstructionsSchema.parse(input);
     const updated = await patchOrganization(version, { ai_instructions });
+    revalidatePath("/organization");
+    return { ok: true, data: updated };
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function updateWhatsAppConfigAction(
+  input: UpdateWhatsAppConfigInput,
+): Promise<OrganizationActionResult<OrganizationDto>> {
+  try {
+    const { version, ...payload } = UpdateWhatsAppConfigSchema.parse(input);
+    const updated = await patchOrganization(version, payload);
     revalidatePath("/organization");
     return { ok: true, data: updated };
   } catch (error) {

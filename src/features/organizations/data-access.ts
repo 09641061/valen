@@ -26,6 +26,9 @@ export type OrganizationPatchPayload = {
   timezone?: string;
   business_hours?: BusinessHours;
   ai_instructions?: string;
+  whatsapp_phone_number?: string;
+  whatsapp_phone_number_id?: string;
+  whatsapp_enabled?: boolean;
 };
 
 export async function patchOrganization(
