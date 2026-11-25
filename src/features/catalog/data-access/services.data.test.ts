@@ -34,7 +34,6 @@ const sampleService = {
   name: "Classic haircut",
   duration_minutes: 30,
   price_minor_units: 2000,
-  currency_code: "USD",
   sort_order: 1,
   version: 2,
   created_at: "2026-01-01T00:00:00Z",
@@ -71,7 +70,6 @@ describe("catalog services data-access", () => {
       name: "Classic haircut",
       duration_minutes: 30,
       price_minor_units: 2000,
-      currency_code: "USD",
       sort_order: 1,
     });
 
@@ -79,7 +77,6 @@ describe("catalog services data-access", () => {
       name: "Classic haircut",
       duration_minutes: 30,
       price_minor_units: 2000,
-      currency_code: "USD",
       sort_order: 1,
     });
     expect(created.id).toBe(SVC_ID);
@@ -100,7 +97,6 @@ describe("catalog services data-access", () => {
       name: "Updated haircut",
       duration_minutes: 45,
       price_minor_units: 2500,
-      currency_code: "USD",
     });
 
     expect(ifMatch).toBe('"v2"');

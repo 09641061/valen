@@ -24,6 +24,7 @@ export type OrganizationPatchPayload = {
   name?: string;
   contact_email?: string;
   timezone?: string;
+  currency_code?: string;
   business_hours?: BusinessHours;
   ai_instructions?: string;
   whatsapp_phone_number?: string;

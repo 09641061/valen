@@ -22,6 +22,7 @@ function makeOrganization(
     business_type: "salon",
     contact_email: "hello@takodu.com",
     timezone: "UTC",
+    currency_code: "USD",
     business_hours: {
       monday: { is_open: true, open_time: "09:00", close_time: "18:00" },
       tuesday: { is_open: true, open_time: "09:00", close_time: "18:00" },
@@ -77,7 +78,12 @@ describe("BusinessDetailsCard", () => {
     expect(
       screen.queryByRole("button", { name: /use mine/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toHaveTextContent("America/New_York");
+    expect(screen.getByRole("combobox", { name: "Timezone" })).toHaveTextContent(
+      "America/New_York",
+    );
+    expect(screen.getByRole("combobox", { name: "Currency" })).toHaveTextContent(
+      "USD",
+    );
   });
 
   it("preserves explicit configured timezone and submits updated business details", async () => {
@@ -88,6 +94,7 @@ describe("BusinessDetailsCard", () => {
       name: "Takodu Madrid",
       contact_email: "madrid@takodu.com",
       timezone: "Europe/Madrid",
+      currency_code: "PEN",
     });
     vi.mocked(actions.updateBusinessDetailsAction).mockResolvedValue({
       ok: true,
@@ -96,13 +103,19 @@ describe("BusinessDetailsCard", () => {
 
     render(
       <BusinessDetailsCard
-        organization={makeOrganization({ version: 2, timezone: "Europe/Madrid" })}
+        organization={makeOrganization({
+          version: 2,
+          timezone: "Europe/Madrid",
+          currency_code: "USD",
+        })}
         onUpdated={onUpdated}
         onStaleVersion={vi.fn()}
       />,
     );
 
-    expect(screen.getByRole("combobox")).toHaveTextContent("Europe/Madrid");
+    expect(screen.getByRole("combobox", { name: "Timezone" })).toHaveTextContent(
+      "Europe/Madrid",
+    );
 
     const nameInput = screen.getByLabelText("Business name");
     await user.clear(nameInput);
@@ -112,6 +125,12 @@ describe("BusinessDetailsCard", () => {
     await user.clear(emailInput);
     await user.type(emailInput, "madrid@takodu.com");
 
+    await user.click(screen.getByRole("combobox", { name: "Currency" }));
+    await user.type(await screen.findByLabelText("Search currency"), "PEN");
+    await user.click(
+      await screen.findByRole("button", { name: /PEN · Peruvian Sol/ }),
+    );
+
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
@@ -120,6 +139,7 @@ describe("BusinessDetailsCard", () => {
         name: "Takodu Madrid",
         contact_email: "madrid@takodu.com",
         timezone: "Europe/Madrid",
+        currency_code: "PEN",
       });
     });
     expect(onUpdated).toHaveBeenCalledWith(updatedOrg);

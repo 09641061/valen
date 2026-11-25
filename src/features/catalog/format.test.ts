@@ -20,7 +20,6 @@ function makeService(
     name: `Service ${id}`,
     duration_minutes: 30,
     price_minor_units: 1500,
-    currency_code: "USD",
     sort_order: sortOrder,
     version: 1,
     created_at: "2026-01-01T00:00:00Z",

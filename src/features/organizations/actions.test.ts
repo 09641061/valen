@@ -55,6 +55,7 @@ const sampleOrganization = {
   business_type: "Salon",
   contact_email: "hello@takodu.com",
   timezone: "UTC",
+  currency_code: "USD",
   business_hours: validHours,
   ai_instructions: "Be concise.",
   whatsapp_phone_number: "",
@@ -77,6 +78,7 @@ describe("organizations server actions", () => {
         name: "   ",
         contact_email: "bad-email",
         timezone: "UTC",
+        currency_code: "US",
       }),
       updateBusinessHoursAction({
         version: 1,
@@ -111,6 +113,7 @@ describe("organizations server actions", () => {
         name: "  Takodu  ",
         contact_email: "hello@takodu.com",
         timezone: "UTC",
+        currency_code: "pen",
       }),
     ).toEqual({ ok: true, data: sampleOrganization });
 

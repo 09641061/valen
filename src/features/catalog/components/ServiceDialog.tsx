@@ -27,6 +27,7 @@ interface ServiceDialogProps {
   onOpenChange: (open: boolean) => void;
   categoryId: string;
   service?: ServiceDto | null;
+  currencyCode?: string;
   onStaleVersion: (message: string) => void;
   onSuccess: () => void;
 }
@@ -37,14 +38,12 @@ function getInitialServiceForm(service?: ServiceDto | null) {
       name: "",
       duration: "30",
       price: "0.00",
-      currencyCode: "USD",
     };
   }
   return {
     name: service.name,
     duration: String(service.duration_minutes),
     price: formatMinorUnitsToInput(service.price_minor_units),
-    currencyCode: service.currency_code,
   };
 }
 
@@ -53,6 +52,7 @@ export function ServiceDialog({
   onOpenChange,
   categoryId,
   service,
+  currencyCode = "USD",
   onStaleVersion,
   onSuccess,
 }: ServiceDialogProps) {
@@ -61,7 +61,6 @@ export function ServiceDialog({
   const [name, setName] = useState(initial.name);
   const [duration, setDuration] = useState(initial.duration);
   const [price, setPrice] = useState(initial.price);
-  const [currencyCode, setCurrencyCode] = useState(initial.currencyCode);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -86,7 +85,6 @@ export function ServiceDialog({
       name,
       duration_minutes: Number.isNaN(parsedDuration) ? -1 : parsedDuration,
       price_minor_units: minorUnits,
-      currency_code: currencyCode,
     };
 
     const parsed = CreateServiceSchema.safeParse(candidate);
@@ -103,7 +101,6 @@ export function ServiceDialog({
             name: parsed.data.name,
             duration_minutes: parsed.data.duration_minutes,
             price_minor_units: parsed.data.price_minor_units,
-            currency_code: parsed.data.currency_code,
           })
         : await createServiceAction(parsed.data);
 
@@ -148,7 +145,6 @@ export function ServiceDialog({
             onNameChange={setName}
             onDurationChange={setDuration}
             onPriceChange={setPrice}
-            onCurrencyChange={setCurrencyCode}
           />
 
           {formError ? (

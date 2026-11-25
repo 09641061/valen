@@ -35,7 +35,10 @@ import { ServiceRow } from "./ServiceRow";
 
 interface CategoryCardProps {
   category: CategoryDto;
+  currencyCode?: string;
   isFiltering: boolean;
+  isDraggingService?: boolean;
+  isServiceDropTarget?: boolean;
   onAddService: (categoryId: string) => void;
   onEditCategory: (category: CategoryDto) => void;
   onDeleteCategory: (category: CategoryDto) => void;
@@ -45,7 +48,10 @@ interface CategoryCardProps {
 
 export function CategoryCard({
   category,
+  currencyCode = "USD",
   isFiltering,
+  isDraggingService = false,
+  isServiceDropTarget = false,
   onAddService,
   onEditCategory,
   onDeleteCategory,
@@ -160,7 +166,8 @@ export function CategoryCard({
         ref={setDropRef}
         className={cn(
           "space-y-2 p-4 transition-colors",
-          isOver && "bg-primary/5",
+          (isServiceDropTarget || (isDraggingService && isOver)) &&
+            "bg-primary/5",
         )}
       >
         <SortableContext
@@ -176,6 +183,7 @@ export function CategoryCard({
               <ServiceRow
                 key={service.id}
                 service={service}
+                currencyCode={currencyCode}
                 isFiltering={isFiltering}
                 onEdit={onEditService}
                 onDelete={onDeleteService}

@@ -20,7 +20,6 @@ export async function insertService(
     name: input.name,
     duration_minutes: input.duration_minutes,
     price_minor_units: input.price_minor_units,
-    currency_code: input.currency_code,
   };
   if (input.sort_order !== undefined) {
     body.sort_order = input.sort_order;
@@ -52,7 +51,6 @@ export async function updateService(
       name: input.name,
       duration_minutes: input.duration_minutes,
       price_minor_units: input.price_minor_units,
-      currency_code: input.currency_code,
     }),
   });
   const payload = await response.json();

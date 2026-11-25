@@ -29,6 +29,7 @@ const validDetails = {
   name: "Takodu Salon",
   contact_email: "hello@takodu.com",
   timezone: "America/New_York",
+  currency_code: "USD",
 };
 
 describe("organizations day and business hours schemas", () => {
@@ -87,12 +88,14 @@ describe("organizations DTO and update schemas", () => {
       name: "  Ab  ",
       contact_email: " a@b.co ",
       timezone: " UTC ",
+      currency_code: " pen ",
     });
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.name).toBe("Ab");
       expect(parsed.data.contact_email).toBe("a@b.co");
       expect(parsed.data.timezone).toBe("UTC");
+      expect(parsed.data.currency_code).toBe("PEN");
     }
 
     expect(
@@ -113,6 +116,10 @@ describe("organizations DTO and update schemas", () => {
     { contact_email: "not-an-email" },
     { contact_email: `${"a".repeat(245)}@example.com` },
     { timezone: "   " },
+    { currency_code: "" },
+    { currency_code: "US" },
+    { currency_code: "USDD" },
+    { currency_code: "12A" },
   ])("rejects invalid UpdateBusinessDetailsSchema override %j", (override) => {
     expect(
       UpdateBusinessDetailsSchema.safeParse({ ...validDetails, ...override })

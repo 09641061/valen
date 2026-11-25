@@ -68,7 +68,6 @@ const sampleService = {
   name: "Haircut",
   duration_minutes: 30,
   price_minor_units: 2000,
-  currency_code: "USD",
   sort_order: 1,
   version: 1,
   created_at: "2026-01-01T00:00:00Z",
@@ -91,7 +90,6 @@ describe("catalog server actions", () => {
         name: "Haircut",
         duration_minutes: 0,
         price_minor_units: 1000,
-        currency_code: "USD",
       }),
       updateServiceAction({
         id: SVC_ID,
@@ -99,7 +97,6 @@ describe("catalog server actions", () => {
         name: "Haircut",
         duration_minutes: 30,
         price_minor_units: -1,
-        currency_code: "USD",
       }),
       deleteServiceAction({ id: "bad", version: 1 }),
       moveServiceAction({
@@ -156,7 +153,6 @@ describe("catalog server actions", () => {
         name: "Haircut",
         duration_minutes: 30,
         price_minor_units: 2000,
-        currency_code: "USD",
       }),
     ).toEqual({ ok: true, data: sampleService });
     expect(
@@ -166,7 +162,6 @@ describe("catalog server actions", () => {
         name: "Haircut",
         duration_minutes: 30,
         price_minor_units: 2000,
-        currency_code: "USD",
       }),
     ).toEqual({ ok: true, data: sampleService });
     expect(await deleteServiceAction({ id: SVC_ID, version: 1 })).toEqual({
