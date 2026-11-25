@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Info, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { SearchInput } from "./SearchInput";
+import { SearchInput } from "@/components/ui/search-input";
 
 export function ErrorAlert({ message }: { message: string | null }) {
   if (!message) return null;
@@ -68,7 +68,7 @@ export function SearchToolbar({
   onChange: (next: string) => void;
   placeholder: string;
   ariaLabel: string;
-  summary: ReactNode;
+  summary?: ReactNode;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -77,8 +77,10 @@ export function SearchToolbar({
         onChange={onChange}
         placeholder={placeholder}
         ariaLabel={ariaLabel}
+        className="max-w-sm"
+        inputClassName="bg-card"
       />
-      <p className="text-xs text-muted-foreground">{summary}</p>
+      {summary ? <p className="text-xs text-muted-foreground">{summary}</p> : null}
     </div>
   );
 }

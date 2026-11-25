@@ -143,6 +143,13 @@ export function actorHoldsPermission(actor: ActorDto, permission: string): boole
   return actor.effective_permissions.includes(permission);
 }
 
+export function isIncludedInAdministrator(permission: string): boolean {
+  return (
+    permission !== PERMISSIONS.IAM_ADMINISTRATOR &&
+    permission !== PERMISSIONS.SCHEDULING_APPEAR
+  );
+}
+
 export function wouldCauseManageRolesLockout(
   actor: ActorDto,
   roleId: string,

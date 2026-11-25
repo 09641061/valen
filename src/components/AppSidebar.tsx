@@ -194,9 +194,6 @@ export function AppSidebar({ user }: { user: ActorDto }) {
             <p className="truncate text-xs font-semibold text-foreground">
               {fullName}
             </p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {user.email}
-            </p>
           </div>
           <Link
             href="/settings"

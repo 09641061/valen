@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, MoreHorizontal, Shield, Trash2 } from "lucide-react";
+import { Crown, MoreHorizontal, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  canAssignMemberRoles,
   canRemoveMember,
   getFullName,
   getInitials,
@@ -20,15 +19,12 @@ import type { ActorDto } from "../schemas";
 export function MemberRow({
   actor,
   member,
-  onAssignRoles,
   onRemove,
 }: {
   actor: ActorDto;
   member: ActorDto;
-  onAssignRoles: (member: ActorDto) => void;
   onRemove: (member: ActorDto) => void;
 }) {
-  const allowAssign = canAssignMemberRoles(actor, member);
   const allowRemove = canRemoveMember(actor, member);
 
   return (
@@ -51,21 +47,15 @@ export function MemberRow({
         {member.type === "owner" ? (
           <Badge className="gap-1 bg-accent text-accent-foreground">
             <Crown aria-hidden="true" className="size-3" />
-            Owner · account
+            Owner
           </Badge>
-        ) : member.roles.length > 0 ? (
-          member.roles.map((role) => (
-            <Badge key={role.id} variant="secondary">
-              {role.name}
-            </Badge>
-          ))
         ) : (
           <Badge variant="outline">Member</Badge>
         )}
       </div>
 
       <div className="flex justify-end">
-        {allowAssign || allowRemove ? (
+        {allowRemove ? (
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -79,21 +69,13 @@ export function MemberRow({
               <MoreHorizontal aria-hidden="true" className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {allowAssign ? (
-                <DropdownMenuItem onClick={() => onAssignRoles(member)}>
-                  <Shield aria-hidden="true" className="mr-2 size-4" />
-                  Assign roles
-                </DropdownMenuItem>
-              ) : null}
-              {allowRemove ? (
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => onRemove(member)}
-                >
-                  <Trash2 aria-hidden="true" className="mr-2 size-4" />
-                  Remove member
-                </DropdownMenuItem>
-              ) : null}
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => onRemove(member)}
+              >
+                <Trash2 aria-hidden="true" className="mr-2 size-4" />
+                Remove
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (

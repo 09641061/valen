@@ -65,7 +65,7 @@ describe("CustomersTable", () => {
     expect(input.parentElement?.querySelector("button")).toBeNull();
 
     const cleanButton = screen.getByRole("button", {
-      name: "Clean",
+      name: "Clear",
     }) as HTMLButtonElement;
     expect(cleanButton.disabled).toBe(true);
 
@@ -165,7 +165,7 @@ describe("CustomersTable", () => {
         {...makeProps({ searchQuery: "", isSearching: true, onSearchChange })}
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Clean" }));
+    await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(input.value).toBe("");
     expect(document.activeElement).toBe(input);
     expect(onSearchChange).toHaveBeenLastCalledWith("");

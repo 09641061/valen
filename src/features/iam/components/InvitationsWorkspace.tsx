@@ -10,7 +10,6 @@ import { PERMISSIONS, getInitials, hasPermission } from "../permissions";
 import type { ActorDto, InvitationDto } from "../schemas";
 import {
   ErrorAlert,
-  InfoCallout,
   SearchToolbar,
   WorkspaceHeader,
 } from "./IamFeedback";
@@ -166,11 +165,6 @@ export function InvitationsWorkspace({
           )}
         </CardContent>
       </Card>
-
-      <InfoCallout>
-        Invitations are not active members until accepted. Once a member
-        completes registration, assign their permission groups in Members.
-      </InfoCallout>
 
       <InviteMemberDialog
         open={inviteOpen}
