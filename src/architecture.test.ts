@@ -77,10 +77,11 @@ describe("architecture boundaries", () => {
     expect(violations).toEqual([]);
   });
 
-  it("ensures every feature directory has schemas.ts and data-access.ts", () => {
+  it("requires schemas.ts and data-access.ts for application features", () => {
     const features = getFeatureDirs();
     expect(features.length).toBeGreaterThan(0);
     for (const feature of features) {
+      if (feature === "landing") continue; // Static public page with no application data.
       const dir = path.join(SRC_DIR, "features", feature);
       expect(fs.existsSync(path.join(dir, "schemas.ts"))).toBe(true);
       expect(fs.existsSync(path.join(dir, "data-access.ts"))).toBe(true);
