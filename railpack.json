@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "bun": "1.3.13"
+  },
+  "deploy": {
+    "variables": {
+      "PORT": "49181"
+    },
+    "startCommand": "bun run start -- --port 49181"
+  }
+}

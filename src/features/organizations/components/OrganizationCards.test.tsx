@@ -1,0 +1,240 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as actions from "../actions";
+import type { OrganizationDto } from "../schemas";
+import { AiInstructionsCard } from "./AiInstructionsCard";
+import { BusinessDetailsCard } from "./BusinessDetailsCard";
+import { BusinessHoursCard } from "./BusinessHoursCard";
+
+vi.mock("../actions", () => ({
+  updateBusinessDetailsAction: vi.fn(),
+  updateBusinessHoursAction: vi.fn(),
+  updateAiInstructionsAction: vi.fn(),
+}));
+
+function makeOrganization(
+  overrides: Partial<OrganizationDto> = {},
+): OrganizationDto {
+  return {
+    id: "11111111-1111-4111-8111-111111111111",
+    name: "Takodu Studio",
+    business_type: "salon",
+    contact_email: "hello@takodu.com",
+    timezone: "UTC",
+    currency_code: "USD",
+    business_hours: {
+      monday: { is_open: true, open_time: "09:00", close_time: "18:00" },
+      tuesday: { is_open: true, open_time: "09:00", close_time: "18:00" },
+      wednesday: { is_open: true, open_time: "09:00", close_time: "18:00" },
+      thursday: { is_open: true, open_time: "09:00", close_time: "18:00" },
+      friday: { is_open: true, open_time: "09:00", close_time: "18:00" },
+      saturday: { is_open: false, open_time: "09:00", close_time: "14:00" },
+      sunday: { is_open: false, open_time: "09:00", close_time: "14:00" },
+    },
+    ai_instructions: "",
+    ai_enabled: false,
+    whatsapp_phone_number: "",
+    whatsapp_phone_number_id: "",
+    whatsapp_enabled: false,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+describe("BusinessDetailsCard", () => {
+  const OriginalDateTimeFormat = Intl.DateTimeFormat;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(function (
+      ...args: Parameters<typeof Intl.DateTimeFormat>
+    ) {
+      const instance = new OriginalDateTimeFormat(...args);
+      if (!args[1]?.timeZone) {
+        vi.spyOn(instance, "resolvedOptions").mockReturnValue({
+          ...instance.resolvedOptions(),
+          timeZone: "America/New_York",
+        });
+      }
+      return instance;
+    } as unknown as typeof Intl.DateTimeFormat);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("omits 'Use mine' button and defaults unconfigured UTC org to local timezone", () => {
+    render(
+      <BusinessDetailsCard
+        organization={makeOrganization({ timezone: "UTC" })}
+        onUpdated={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /use mine/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Timezone" })).toHaveTextContent(
+      "America/New_York",
+    );
+    expect(screen.getByRole("combobox", { name: "Currency" })).toHaveTextContent(
+      "USD",
+    );
+  });
+
+  it("preserves explicit configured timezone and submits updated business details", async () => {
+    const user = userEvent.setup();
+    const onUpdated = vi.fn();
+    const updatedOrg = makeOrganization({
+      name: "Takodu Madrid",
+      contact_email: "madrid@takodu.com",
+      timezone: "Europe/Madrid",
+      currency_code: "PEN",
+    });
+    vi.mocked(actions.updateBusinessDetailsAction).mockResolvedValue({
+      ok: true,
+      data: updatedOrg,
+    });
+
+    render(
+      <BusinessDetailsCard
+        organization={makeOrganization({
+          timezone: "Europe/Madrid",
+          currency_code: "USD",
+        })}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    expect(screen.getByRole("combobox", { name: "Timezone" })).toHaveTextContent(
+      "Europe/Madrid",
+    );
+
+    const nameInput = screen.getByLabelText("Business name");
+    await user.clear(nameInput);
+    await user.type(nameInput, "Takodu Madrid");
+
+    const emailInput = screen.getByLabelText("Contact email");
+    await user.clear(emailInput);
+    await user.type(emailInput, "madrid@takodu.com");
+
+    await user.click(screen.getByRole("combobox", { name: "Currency" }));
+    await user.type(await screen.findByLabelText("Search currency"), "PEN");
+    await user.click(
+      await screen.findByRole("button", { name: /PEN · Peruvian Sol/ }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => {
+      expect(actions.updateBusinessDetailsAction).toHaveBeenCalledWith({
+        name: "Takodu Madrid",
+        contact_email: "madrid@takodu.com",
+        timezone: "Europe/Madrid",
+        currency_code: "PEN",
+      });
+    });
+    expect(onUpdated).toHaveBeenCalledWith(updatedOrg);
+  });
+});
+
+describe("BusinessHoursCard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("toggles a day closed, updates time via TimePicker, and submits", async () => {
+    const user = userEvent.setup();
+    const onUpdated = vi.fn();
+    const baseOrg = makeOrganization();
+    const expectedHours = {
+      ...baseOrg.business_hours,
+      monday: { ...baseOrg.business_hours.monday, is_open: false },
+      tuesday: { ...baseOrg.business_hours.tuesday, open_time: "08:30" },
+    };
+    vi.mocked(actions.updateBusinessHoursAction).mockResolvedValue({
+      ok: true,
+      data: { ...baseOrg, business_hours: expectedHours },
+    });
+
+    render(
+      <BusinessHoursCard
+        organization={baseOrg}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    await user.click(screen.getByRole("switch", { name: "Monday open" }));
+    expect(
+      screen.queryByLabelText("Monday opening time"),
+    ).not.toBeInTheDocument();
+
+    const tuesdayOpen = screen.getByLabelText("Tuesday opening time");
+    await user.clear(tuesdayOpen);
+    await user.type(tuesdayOpen, "8:30");
+    await user.tab();
+
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => {
+      expect(actions.updateBusinessHoursAction).toHaveBeenCalledWith({
+        business_hours: expectedHours,
+      });
+    });
+    expect(onUpdated).toHaveBeenCalled();
+  });
+});
+
+describe("AiInstructionsCard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("toggles auto-reply with helper note and saves AI settings", async () => {
+    const user = userEvent.setup();
+    const onUpdated = vi.fn();
+    const baseOrg = makeOrganization({
+      ai_instructions: "",
+      ai_enabled: false,
+      whatsapp_enabled: false,
+    });
+    const updatedOrg = {
+      ...baseOrg,
+      ai_instructions: "Greet customers warmly.",
+      ai_enabled: true,
+    };
+    vi.mocked(actions.updateAiInstructionsAction).mockResolvedValue({
+      ok: true,
+      data: updatedOrg,
+    });
+
+    render(
+      <AiInstructionsCard
+        organization={baseOrg}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    const toggle = screen.getByRole("switch", { name: "Auto-reply on WhatsApp" });
+    expect(toggle).not.toBeChecked();
+    expect(screen.queryByText(/Connect and enable WhatsApp above/)).not.toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle).toBeChecked();
+    expect(screen.getByText("Connect and enable WhatsApp above to start sending automatic replies.")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Assistant instructions"), "Greet customers warmly.");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => {
+      expect(actions.updateAiInstructionsAction).toHaveBeenCalledWith({
+        ai_instructions: "Greet customers warmly.",
+        ai_enabled: true,
+      });
+    });
+    expect(onUpdated).toHaveBeenCalledWith(updatedOrg);
+  });
+});

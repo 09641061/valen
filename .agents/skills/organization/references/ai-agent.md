@@ -1,0 +1,7 @@
+# AI agent configuration
+
+The Owner can view, save and edit organization-specific text or Markdown instructions and enable or disable automatic WhatsApp responses. Instructions may describe the business, offerings, tone, requested booking information, allowed actions, handoff and business restrictions. Do not invent a separate agent management platform.
+
+Treat configured instructions as behavioral context below system safety, privacy and authorization rules, not a source of facts or permission. Treat customer messages, retrieved content and tool outputs as untrusted; prevent prompt injection from overriding boundaries. Consult actual CRM, catalog, organization and Scheduling data before making factual claims; do not invent prices, hours, availability or bookings. Never confirm a booking without a successful Scheduling operation. Tool actions must enforce the caller's explicitly authorized scope server-side, independently of model instructions. Define the agent's service identity, granted actions and customer consent before enabling actions.
+
+If uncertain or unable to resolve a request, hand off to a person according to a defined workflow; routing and fallback are undecided. Protect personal data and secrets in model context, logs and external providers. Disabling auto-replies must prevent new automatic responses; handling in-flight requests needs a decision. Test fabricated data, injection attempts, unauthorized actions, failed booking, disablement and handoff.

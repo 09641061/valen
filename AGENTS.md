@@ -1,26 +1,30 @@
 # Valen
 
-## Project status
-
-Valen is intended to be a Next.js App Router project. At setup time, the repository contains design assets but no `package.json`, TypeScript configuration, Next.js configuration, or application routes. Before implementation, inspect the actual scaffold and confirm its package manager and versions; do not assume them or generate application code without a request.
+Next.js App Router application in `src/app`, using TypeScript, Tailwind CSS, shadcn/ui (Base UI preset), and Bun.
 
 ## Required skills
 
-- For Next.js architecture, implementation, review, or testing, read `.agents/skills/nextjs-feature-based/SKILL.md` and the relevant references.
-- Read the linked Cynthia domain skill when a task concerns its domain: `catalog`, `crm`, `organization`, `permissions`, or `scheduling`. Keep those domain boundaries separate.
-- Go-specific skills are intentionally not linked into this project.
+Consult the applicable skill before designing, implementing, reviewing, or testing:
 
-## Next.js conventions
+- `nextjs-feature-based` and `nextjs-conventions`: mandatory for any Next.js architecture, routing, feature scaffolding, data access, Server Action, or review work.
+- `shadcn-ui`: mandatory before designing, implementing, reviewing, or testing any UI.
+- `code-quality-guardrails`: mandatory before creating or modifying any `.ts` or `.tsx` file (`<= 250` lines, zero `useEffect`, DRI, DRY, KISS, YAGNI, SRP, Clean Code).
+- `testing` and `testing-strategy`: mandatory when planning, writing, or reviewing any test suite.
+- `security-audit`: mandatory when reviewing dependencies (`bun audit`), threat models, or security boundaries.
+- Cynthia domain skills (`catalog`, `crm`, `organization`, `permissions`, `scheduling`): mandatory when a task touches that domain; keep domain boundaries separate.
 
-- Prefer the App Router and React Server Components. Use `'use client'` only for interactive UI that requires client-side state or browser APIs.
-- Keep `app/` focused on routes, layouts, and HTTP handlers. Place feature behavior in feature modules and isolate server-side data access from UI code.
-- Keep authorization and data access on the server, and validate untrusted input at the boundary. Do not rely on middleware alone for authorization.
-- Use Server Actions for internal UI mutations and Route Handlers for external APIs, webhooks, OAuth callbacks, and streaming.
-- Co-locate focused unit and functional tests with features; keep end-to-end tests in `tests/e2e/`. Cover invalid input, authorization, and failure paths.
-- Preserve the repository's existing structure and dependencies once the application is scaffolded; avoid adding infrastructure or dependencies before a concrete need exists.
+## Core working rules
 
-## Working rules
+- Preserve unrelated working-tree changes, use task branches, and never expose `.env` files, credentials, or tokens.
+- Write all UI copy, labels (`Edit` / `Delete`), source code, comments, and instructions in English.
+- Run `bun run validate` before declaring any change complete.
 
-- Preserve unrelated working-tree changes and use task branches when this directory is a Git repository.
-- Never expose `.env` files, credentials, or tokens.
-- Write code, comments, and repository instructions in English. Keep comments purposeful and preserve directives, licenses, and API contracts.
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

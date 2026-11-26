@@ -1,0 +1,69 @@
+name: Build and Test - Continuous Integration
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Run Test Suites
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Lint
+        run: bun run lint
+
+      - name: Run Typecheck
+        run: bun run typecheck
+
+      - name: Run Tests and Coverage
+        run: bun run test:coverage
+
+      - name: Build Application
+        run: bun run build
+
+  deploy:
+    name: Trigger Dokploy Deployment
+    needs: [build-and-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Trigger Dokploy Webhook
+        run: |
+          echo "Triggering Dokploy deployment webhook for ref: ${{ github.ref }}..."
+          response=$(curl -s -L -w "\n%{http_code}" -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: push" \
+            -d '{"ref": "${{ github.ref }}"}')
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" -ne 200 ] && [ "$http_code" -ne 201 ]; then
+            echo "Error: Failed to trigger Dokploy deployment"
+            exit 1
+          fi
+          echo "Dokploy deployment triggered successfully!"
