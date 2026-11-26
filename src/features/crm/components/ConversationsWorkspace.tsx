@@ -112,7 +112,6 @@ export function ConversationsWorkspace({
     startAiTransition(async () => {
       const result = await updateConversationAiAction({
         conversationId: selectedConversation.id,
-        version: selectedConversation.version,
         aiPaused: false,
       });
       if (!result.ok) {

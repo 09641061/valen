@@ -111,7 +111,6 @@ describe("crm data-access", () => {
               customer_id: CUSTOMER.id,
               channel: "whatsapp",
               status: "open",
-              version: 1,
               created_at: "2026-01-01T10:00:00Z",
               updated_at: "2026-01-01T10:00:00Z",
             },
@@ -144,16 +143,14 @@ describe("crm data-access", () => {
     expect(CrmApiError).toBeDefined();
   });
 
-  it("updates conversation AI with If-Match header and body, and maps 412/409 to CrmApiError", async () => {
+  it("updates conversation AI body and maps 412/409 to CrmApiError", async () => {
     const convId = "22222222-2222-4222-8222-222222222222";
-    let receivedIfMatch: string | null = null;
     let receivedBody: unknown = null;
 
     server.use(
       http.patch(
         `http://cynthia.test/v1/conversations/${convId}/ai`,
         async ({ request }) => {
-          receivedIfMatch = request.headers.get("if-match");
           receivedBody = await request.json();
           return HttpResponse.json({
             id: convId,
@@ -161,7 +158,6 @@ describe("crm data-access", () => {
             channel: "whatsapp",
             status: "open",
             ai_paused: false,
-            version: 4,
             created_at: "2026-01-01T10:00:00Z",
             updated_at: "2026-01-01T10:05:00Z",
           });
@@ -169,11 +165,9 @@ describe("crm data-access", () => {
       ),
     );
 
-    const updated = await updateConversationAi(convId, 3, false);
-    expect(receivedIfMatch).toBe('"v3"');
+    const updated = await updateConversationAi(convId, false);
     expect(receivedBody).toEqual({ ai_paused: false });
     expect(updated.ai_paused).toBe(false);
-    expect(updated.version).toBe(4);
 
     for (const [status, code] of [
       [412, "STALE_VERSION"],
@@ -191,7 +185,7 @@ describe("crm data-access", () => {
         ),
       );
 
-      await expect(updateConversationAi(convId, 3, false)).rejects.toMatchObject(
+      await expect(updateConversationAi(convId, false)).rejects.toMatchObject(
         {
           name: "CrmApiError",
           code,

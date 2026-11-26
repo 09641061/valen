@@ -62,7 +62,6 @@ describe("crm schemas", () => {
           customer_id: "11111111-1111-4111-8111-111111111111",
           channel: "whatsapp",
           status: "open",
-          version: 1,
           last_message_preview: "Hello!",
           created_at: "2026-01-01T10:00:00Z",
           updated_at: "2026-01-01T10:00:00Z",
@@ -95,7 +94,6 @@ describe("crm schemas", () => {
       customer_id: "11111111-1111-4111-8111-111111111111",
       channel: "whatsapp",
       status: "open",
-      version: 1,
       created_at: "2026-01-01T10:00:00Z",
       updated_at: "2026-01-01T10:00:00Z",
     };
@@ -116,7 +114,6 @@ describe("crm schemas", () => {
   it("validates UpdateConversationAiSchema boundaries", () => {
     const valid = UpdateConversationAiSchema.safeParse({
       conversationId: "22222222-2222-4222-8222-222222222222",
-      version: 1,
       aiPaused: false,
     });
     expect(valid.success).toBe(true);
@@ -124,23 +121,6 @@ describe("crm schemas", () => {
     expect(
       UpdateConversationAiSchema.safeParse({
         conversationId: "not-a-uuid",
-        version: 1,
-        aiPaused: false,
-      }).success,
-    ).toBe(false);
-
-    expect(
-      UpdateConversationAiSchema.safeParse({
-        conversationId: "22222222-2222-4222-8222-222222222222",
-        version: 0,
-        aiPaused: false,
-      }).success,
-    ).toBe(false);
-
-    expect(
-      UpdateConversationAiSchema.safeParse({
-        conversationId: "22222222-2222-4222-8222-222222222222",
-        version: 1.5,
         aiPaused: false,
       }).success,
     ).toBe(false);

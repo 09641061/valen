@@ -49,7 +49,6 @@ const SAMPLE_CONVERSATION = {
   channel: "whatsapp" as const,
   status: "closed" as const,
   ai_paused: false,
-  version: 4,
   last_message_at: "2026-01-02T12:00:00Z",
   last_message_preview: "Hello!",
   created_at: "2026-01-01T10:00:00Z",
@@ -160,19 +159,17 @@ describe("conversation actions", () => {
   });
 
   describe("updateConversationAiAction", () => {
-    it("forwards version and aiPaused and revalidates /conversations on success", async () => {
+    it("forwards aiPaused and revalidates /conversations on success", async () => {
       vi.mocked(updateConversationAi).mockResolvedValueOnce(SAMPLE_CONVERSATION);
 
       const result = await updateConversationAiAction({
         conversationId: CONVERSATION_ID,
-        version: 3,
         aiPaused: false,
       });
 
       expect(result).toEqual({ ok: true, data: SAMPLE_CONVERSATION });
       expect(updateConversationAi).toHaveBeenCalledWith(
         CONVERSATION_ID,
-        3,
         false,
       );
       expect(revalidatePathMock).toHaveBeenCalledWith("/conversations");
@@ -181,7 +178,6 @@ describe("conversation actions", () => {
     it("returns VALIDATION_ERROR for invalid input without calling API", async () => {
       const result = await updateConversationAiAction({
         conversationId: "not-a-uuid",
-        version: 0,
         aiPaused: false,
       });
 
@@ -204,7 +200,6 @@ describe("conversation actions", () => {
 
         const result = await updateConversationAiAction({
           conversationId: CONVERSATION_ID,
-          version: 3,
           aiPaused: false,
         });
 

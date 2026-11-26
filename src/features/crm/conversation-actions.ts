@@ -90,13 +90,9 @@ export async function updateConversationAiAction(
   input: UpdateConversationAiInput,
 ): Promise<CrmActionResult<ConversationDto>> {
   try {
-    const { conversationId, version, aiPaused } =
+    const { conversationId, aiPaused } =
       UpdateConversationAiSchema.parse(input);
-    const updated = await updateConversationAi(
-      conversationId,
-      version,
-      aiPaused,
-    );
+    const updated = await updateConversationAi(conversationId, aiPaused);
     revalidatePath("/conversations");
     return { ok: true, data: updated };
   } catch (error) {
