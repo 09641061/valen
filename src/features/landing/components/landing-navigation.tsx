@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ArrowRight, Menu } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, LogIn, Menu } from "lucide-react";
 import { buttonVariants, Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ const sections = [
 ];
 
 const contact = { href: "#contact", label: "Let’s talk about your business" };
+const login = { href: "/login", label: "Log in" };
 
 export function LandingLogo() {
   return (
@@ -44,7 +46,13 @@ export function LandingHeader() {
         {sections.map(({ href, label }) => (
           <a href={href} key={href}>{label}</a>
         ))}
-        <TalkLink />
+        <Link
+          className={buttonVariants({ size: "lg", className: styles.cta })}
+          href={login.href}
+        >
+          {login.label}
+          <LogIn aria-hidden="true" />
+        </Link>
       </nav>
       <div className={styles.mobileNav}>
         <DropdownMenu modal={false}>
@@ -55,8 +63,8 @@ export function LandingHeader() {
             <Menu aria-hidden="true" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {[...sections, contact].map(({ href, label }) => (
-              <DropdownMenuItem key={href} className="min-h-11 px-3" render={<a href={href} />}>
+            {[...sections, login].map(({ href, label }) => (
+              <DropdownMenuItem key={href} className="min-h-11 px-3" render={<Link href={href} />}>
                 {label}
               </DropdownMenuItem>
             ))}
