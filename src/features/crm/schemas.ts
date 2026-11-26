@@ -47,7 +47,6 @@ export const ConversationSchema = z.object({
   status: ConversationStatusSchema,
   ai_paused: z.boolean().default(false),
   handoff_reason: z.string().optional(),
-  version: z.number().int().min(1),
   last_message_at: z.string().optional(),
   last_message_preview: z.string().optional(),
   created_at: z.string(),
@@ -119,7 +118,6 @@ export const UpdateConversationStatusSchema = z.object({
 
 export const UpdateConversationAiSchema = z.object({
   conversationId: z.string().uuid(),
-  version: z.number().int().min(1),
   aiPaused: z.boolean(),
 });
 

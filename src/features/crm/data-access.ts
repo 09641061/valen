@@ -170,16 +170,12 @@ export async function updateConversationStatus(
 
 export async function updateConversationAi(
   conversationId: string,
-  version: number,
   aiPaused: boolean,
 ): Promise<ConversationDto> {
   const res = await cynthiaFetch(
     `/v1/conversations/${encodeURIComponent(conversationId)}/ai`,
     {
       method: "PATCH",
-      headers: {
-        "If-Match": `"v${version}"`,
-      },
       body: JSON.stringify({ ai_paused: aiPaused }),
     },
     ERROR_NAME,

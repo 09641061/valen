@@ -41,7 +41,6 @@ const openConversation: HydratedConversation = {
     channel: "whatsapp",
     status: "open",
     ai_paused: false,
-    version: 3,
     last_message_at: "2026-01-02T12:00:00Z",
     last_message_preview: "Hello there!",
     created_at: "2026-01-01T10:00:00Z",
@@ -211,7 +210,7 @@ describe("ConversationsWorkspace", () => {
     };
     vi.mocked(conversationActions.updateConversationAiAction).mockResolvedValueOnce({
       ok: true,
-      data: { ...paused.conversation, ai_paused: false, version: 4 },
+      data: { ...paused.conversation, ai_paused: false },
     });
 
     render(
@@ -232,7 +231,6 @@ describe("ConversationsWorkspace", () => {
     await waitFor(() => {
       expect(conversationActions.updateConversationAiAction).toHaveBeenCalledWith({
         conversationId: paused.conversation.id,
-        version: 3,
         aiPaused: false,
       });
     });
