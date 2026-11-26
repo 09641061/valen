@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { CalendarDays, ContactRound, LayoutGrid, MessageCircle } from "lucide-react";
-import koduHead from "../assets/kodu-head.webp";
+import koduWorkspace from "../assets/kodu-workspace.webp";
 import { ContactSection } from "./contact-section";
 import { FaqSection } from "./faq-section";
 import { LandingHeader, LandingLogo, TalkLink } from "./landing-navigation";
@@ -111,7 +111,13 @@ export function LandingPage() {
 
             <div className={styles.koduStory}>
               <div className={styles.koduArt}>
-                <Image src={koduHead} alt="" className="h-auto w-[38%] max-w-52" unoptimized />
+                <Image
+                  src={koduWorkspace}
+                  alt="Kodu organizing appointments beside a calendar and client card."
+                  fill
+                  sizes="(max-width: 767px) 100vw, 560px"
+                  className={styles.koduScene}
+                />
                 <span>Meet Kodu</span>
               </div>
               <div>

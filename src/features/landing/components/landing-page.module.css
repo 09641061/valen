@@ -241,7 +241,12 @@
   aspect-ratio: 1.7;
   place-items: center;
   border-radius: 1rem;
+  overflow: hidden;
   background: #d9f3ea;
+}
+
+.koduScene {
+  object-fit: cover;
 }
 
 .koduArt span {
