@@ -41,3 +41,29 @@ jobs:
 
       - name: Build Application
         run: bun run build
+
+  deploy:
+    name: Trigger Dokploy Deployment
+    needs: [build-and-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Trigger Dokploy Webhook
+        run: |
+          echo "Triggering Dokploy deployment webhook for ref: ${{ github.ref }}..."
+          response=$(curl -s -L -w "\n%{http_code}" -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: push" \
+            -d '{"ref": "${{ github.ref }}"}')
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" -ne 200 ] && [ "$http_code" -ne 201 ]; then
+            echo "Error: Failed to trigger Dokploy deployment"
+            exit 1
+          fi
+          echo "Dokploy deployment triggered successfully!"
