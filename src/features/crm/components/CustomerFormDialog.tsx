@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import {
   createCustomerAction,
   updateCustomerAction,
-  type RecentConversationOption,
 } from "../actions";
 import {
   normalizeCountryCodeInput,
@@ -25,7 +24,6 @@ import {
   type PhoneValidationResult,
 } from "../phone";
 import type { CustomerDto } from "../schemas";
-import { ConversationPicker } from "./ConversationPicker";
 import { FormStatusFeedback } from "./CustomerFormFeedback";
 import { PhoneNumberInputs } from "./PhoneNumberInputs";
 
@@ -111,13 +109,6 @@ export function CustomerFormDialog({
     setLocalNumber(parts.localNumber);
   }
 
-  function handleSelectRecent(option: RecentConversationOption) {
-    if (!option.customer) return;
-    setName(option.customer.name);
-    applySplitPhone(option.customer.phone);
-    clearFeedback("all");
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isSubmitting) return;
@@ -170,7 +161,6 @@ export function CustomerFormDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          {!isEditing && <ConversationPicker onSelect={handleSelectRecent} />}
           <div className="space-y-1.5">
             <Label htmlFor="customer-name">Name</Label>
             <Input

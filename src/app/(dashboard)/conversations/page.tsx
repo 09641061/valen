@@ -67,7 +67,8 @@ async function loadInboxState(
       initialMessages,
       loadError: null,
     };
-  } catch {
+  } catch (error) {
+    console.error("[ConversationsPage] Failed to load inbox state:", error);
     return {
       hydrated: [],
       selectedId: null,

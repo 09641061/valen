@@ -7,17 +7,14 @@ import { CustomerFormDialog } from "./CustomerFormDialog";
 const {
   createCustomerActionMock,
   updateCustomerActionMock,
-  loadRecentConversationsActionMock,
 } = vi.hoisted(() => ({
   createCustomerActionMock: vi.fn(),
   updateCustomerActionMock: vi.fn(),
-  loadRecentConversationsActionMock: vi.fn(),
 }));
 
 vi.mock("../actions", () => ({
   createCustomerAction: createCustomerActionMock,
   updateCustomerAction: updateCustomerActionMock,
-  loadRecentConversationsAction: loadRecentConversationsActionMock,
 }));
 
 const EXISTING_CUSTOMER: CustomerDto = {
@@ -33,18 +30,6 @@ const CONFLICT_RESULT = {
   code: "CONFLICT" as const,
   message: "Phone already exists",
   existingCustomer: EXISTING_CUSTOMER,
-};
-
-const RECENT_CONVERSATION_OPTION = {
-  conversation: {
-    id: "22222222-2222-4222-8222-222222222222",
-    customer_id: EXISTING_CUSTOMER.id,
-    channel: "whatsapp" as const,
-    status: "open" as const,
-    created_at: "2026-01-01T10:00:00Z",
-    updated_at: "2026-01-01T10:00:00Z",
-  },
-  customer: EXISTING_CUSTOMER,
 };
 
 function renderDialog(
@@ -125,33 +110,6 @@ describe("CustomerFormDialog", () => {
     ).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Open profile" }));
     expect(onOpenExistingProfile).toHaveBeenCalledWith(EXISTING_CUSTOMER);
-  });
-
-  it("loads recent conversations, splits phone, and clears visible 409 banner", async () => {
-    createCustomerActionMock.mockResolvedValueOnce(CONFLICT_RESULT);
-    loadRecentConversationsActionMock.mockResolvedValue({
-      ok: true,
-      data: [RECENT_CONVERSATION_OPTION],
-    });
-    const user = userEvent.setup();
-    renderDialog();
-
-    await fillAndSubmit(user, { name: "Alice", code: "+57", phone: "3001234567" });
-    expect(
-      await screen.findByText("A customer with this phone already exists"),
-    ).toBeTruthy();
-
-    await user.click(
-      screen.getByRole("button", { name: "Pick from Conversations" }),
-    );
-    await user.click(await screen.findByText("Existing Alice"));
-
-    expect(screen.getByLabelText("Name")).toHaveValue("Existing Alice");
-    expect(screen.getByLabelText("Country code")).toHaveValue("+57");
-    expect(screen.getByLabelText("Phone number")).toHaveValue("3001234567");
-    expect(
-      screen.queryByText("A customer with this phone already exists"),
-    ).toBeNull();
   });
 
   it("splits pasted full E.164 phone and normalizes typed local digits", async () => {
