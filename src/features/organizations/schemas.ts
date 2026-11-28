@@ -161,7 +161,6 @@ export const UpdateAiInstructionsSchema = z.object({
   ai_instructions: z
     .string()
     .max(4000, "Assistant instructions must not exceed 4000 characters"),
-  ai_enabled: z.boolean(),
 });
 
 export type UpdateAiInstructionsInput = z.infer<

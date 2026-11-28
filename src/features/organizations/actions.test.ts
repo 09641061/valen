@@ -87,7 +87,6 @@ describe("organizations server actions", () => {
       }),
       updateAiInstructionsAction({
         ai_instructions: "a".repeat(4001),
-        ai_enabled: false,
       }),
     ]);
 
@@ -123,13 +122,11 @@ describe("organizations server actions", () => {
     expect(
       await updateAiInstructionsAction({
         ai_instructions: "Be concise.",
-        ai_enabled: true,
       }),
     ).toEqual({ ok: true, data: sampleOrganization });
 
     expect(dataAccess.patchOrganization).toHaveBeenCalledWith({
       ai_instructions: "Be concise.",
-      ai_enabled: true,
     });
     expect(dataAccess.patchOrganization).toHaveBeenCalledTimes(3);
     expect(revalidatePath).toHaveBeenCalledTimes(3);
@@ -143,7 +140,6 @@ describe("organizations server actions", () => {
     expect(
       await updateAiInstructionsAction({
         ai_instructions: "Hi",
-        ai_enabled: false,
       }),
     ).toEqual({
       ok: false,
@@ -158,7 +154,6 @@ describe("organizations server actions", () => {
     expect(
       await updateAiInstructionsAction({
         ai_instructions: "Hi",
-        ai_enabled: false,
       }),
     ).toEqual({
       ok: false,
