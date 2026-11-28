@@ -87,12 +87,8 @@ export async function updateAiInstructionsAction(
   input: UpdateAiInstructionsInput,
 ): Promise<OrganizationActionResult<OrganizationDto>> {
   try {
-    const { ai_instructions, ai_enabled } =
-      UpdateAiInstructionsSchema.parse(input);
-    const updated = await patchOrganization({
-      ai_instructions,
-      ai_enabled,
-    });
+    const { ai_instructions } = UpdateAiInstructionsSchema.parse(input);
+    const updated = await patchOrganization({ ai_instructions });
     revalidatePath("/organization");
     return { ok: true, data: updated };
   } catch (error) {

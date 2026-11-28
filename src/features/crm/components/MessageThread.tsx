@@ -2,6 +2,7 @@ import { Lock, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateGroup, formatTimestamp } from "../format";
 import type { MessageDto } from "../schemas";
+import { MessageMarkdown } from "./MessageMarkdown";
 
 interface MessageThreadProps {
   messages: MessageDto[];
@@ -87,9 +88,7 @@ export function MessageThread({
                           : "rounded-bl-sm border bg-background text-foreground"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
+                      <MessageMarkdown content={message.content} />
                       <p
                         className={`mt-1 text-[11px] ${
                           isOutbound
