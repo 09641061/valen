@@ -132,19 +132,16 @@ describe("organizations DTO and update schemas", () => {
     expect(
       UpdateAiInstructionsSchema.safeParse({
         ai_instructions: "a".repeat(4000),
-        ai_enabled: true,
       }).success,
     ).toBe(true);
     expect(
       UpdateAiInstructionsSchema.safeParse({
         ai_instructions: "a".repeat(4001),
-        ai_enabled: false,
       }).success,
     ).toBe(false);
     expect(
       UpdateAiInstructionsSchema.safeParse({
         version: 1,
-        ai_instructions: "Hello",
       }).success,
     ).toBe(false);
   });

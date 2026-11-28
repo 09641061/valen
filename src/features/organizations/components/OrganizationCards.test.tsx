@@ -193,18 +193,16 @@ describe("AiInstructionsCard", () => {
     vi.clearAllMocks();
   });
 
-  it("toggles auto-reply with helper note and saves AI settings", async () => {
+  it("omits auto-reply switch and saves assistant instructions", async () => {
     const user = userEvent.setup();
     const onUpdated = vi.fn();
     const baseOrg = makeOrganization({
       ai_instructions: "",
-      ai_enabled: false,
       whatsapp_enabled: false,
     });
     const updatedOrg = {
       ...baseOrg,
       ai_instructions: "Greet customers warmly.",
-      ai_enabled: true,
     };
     vi.mocked(actions.updateAiInstructionsAction).mockResolvedValue({
       ok: true,
@@ -218,21 +216,19 @@ describe("AiInstructionsCard", () => {
       />,
     );
 
-    const toggle = screen.getByRole("switch", { name: "Auto-reply on WhatsApp" });
-    expect(toggle).not.toBeChecked();
-    expect(screen.queryByText(/Connect and enable WhatsApp above/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("switch", { name: "Auto-reply on WhatsApp" }),
+    ).not.toBeInTheDocument();
 
-    await user.click(toggle);
-    expect(toggle).toBeChecked();
-    expect(screen.getByText("Connect and enable WhatsApp above to start sending automatic replies.")).toBeInTheDocument();
-
-    await user.type(screen.getByLabelText("Assistant instructions"), "Greet customers warmly.");
+    await user.type(
+      screen.getByLabelText("Assistant instructions"),
+      "Greet customers warmly.",
+    );
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
       expect(actions.updateAiInstructionsAction).toHaveBeenCalledWith({
         ai_instructions: "Greet customers warmly.",
-        ai_enabled: true,
       });
     });
     expect(onUpdated).toHaveBeenCalledWith(updatedOrg);
